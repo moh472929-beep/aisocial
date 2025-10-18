@@ -1,45 +1,50 @@
-// src/server.js
-require('dotenv').config();
-const path = require('path');
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const morgan = require('morgan');
-const connectDB = require('./db/init');
-const logger = require('./middleware/logger') || console;
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
+import { connectDB } from "./db/init.js";
+import apiRoutes from "./api/index.js";
+import { logger } from "./utils/logger.js";
+
+dotenv.config();
+
+// إعدادات المسارات للنظام (عشان نعرف مجلد المشروع الحالي)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// إنشاء تطبيق Express
 const app = express();
-const PORT = process.env.PORT || 10000;
 
-// Middleware
-app.use(express.json());
+// ميدل ويرز
 app.use(cors());
 app.use(helmet());
-app.use(morgan('dev'));
+app.use(express.json());
+app.use(morgan("dev"));
 
-// Connect to MongoDB
-(async () => {
-  try {
-    await connectDB();
-    logger.info('✅ Database connected and models initialized');
-  } catch (err) {
-    logger.error('❌ Database initialization failed:', err);
-  }
-})();
+// الاتصال بقاعدة البيانات
+connectDB()
+  .then(() => logger.info("✅ Connected to MongoDB Atlas"))
+  .catch((err) => logger.error("❌ MongoDB connection failed:", err));
 
-// Serve static frontend files
-const publicPath = path.join(__dirname, '../public');
-app.use(express.static(publicPath));
+// ربط مسارات الـ API
+app.use("/api", apiRoutes);
 
-// API routes
-app.use('/api', require('./api/index'));
+// خدمة الملفات الثابتة (واجهة المستخدم)
+app.use(express.static(path.join(__dirname, "../public")));
 
-// Fallback route for frontend (SPA)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(publicPath, 'index.html'));
+// أي طلب غير معرف → رجّع ملف index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public", "index.html"));
 });
 
-// Start server
+// تحديد المنفذ
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   logger.info(`🚀 Server running on port ${PORT}`);
 });
+
+export default app;
