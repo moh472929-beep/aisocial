@@ -1,11 +1,15 @@
 import { getDb } from "./connection.js";
 import { logger } from "../utils/logger.js";
 import path from "path";
-import { pathToFileURL } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // دالة لتحميل المودلز من المسار الصحيح داينمكياً
 async function loadModel(relativePath) {
-  const fullPath = path.join(process.cwd(), "src", "models", relativePath);
+  // عدلنا المسار ليتوافق مع مكان المشروع الفعلي
+  const fullPath = path.join(__dirname, "../models", relativePath);
   const moduleURL = pathToFileURL(fullPath).href;
   const module = await import(moduleURL);
   return module.default || module;
@@ -16,7 +20,6 @@ export async function initializeModels() {
     const db = getDb();
     logger.info("📦 Initializing MongoDB models...");
 
-    // تحميل المودلز ديناميكياً حسب أسماء الملفات
     const User = await loadModel("User.js");
     const Page = await loadModel("Page.js");
     const Post = await loadModel("Post.js");
