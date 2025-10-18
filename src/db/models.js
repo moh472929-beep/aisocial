@@ -1,24 +1,26 @@
-// src/db/models.js
-const fs = require('fs');
-const path = require('path');
-const logger = require('../middleware/logger') || console;
+import { getDb } from "./connection.js";
+import { logger } from "../utils/logger.js";
 
-async function initializeModels() {
+import User from "../models/User.js";
+import Page from "../models/Page.js";
+import Post from "../models/Post.js";
+import Analytics from "../models/Analytics.js";
+import AutoResponse from "../models/AutoResponse.js";
+import Task from "../models/Task.js";
+
+export async function initializeModels() {
   try {
-    const modelsDir = path.join(__dirname, '../models');
-    const modelFiles = fs.readdirSync(modelsDir).filter(file => file.endsWith('.js'));
+    const db = getDb();
+    logger.info("📦 Initializing models...");
 
-    for (const file of modelFiles) {
-      const modelPath = path.join(modelsDir, file);
-      require(modelPath);
-      logger.info(`✅ Loaded model: ${file}`);
+    const models = [User, Page, Post, Analytics, AutoResponse, Task];
+    for (const model of models) {
+      if (model.initialize) await model.initialize(db);
     }
 
-    logger.info('✅ All models initialized successfully.');
+    logger.info("✅ All models initialized successfully");
   } catch (error) {
-    logger.error('❌ Error initializing models:', error);
+    logger.error("❌ Error initializing models:", error);
     throw error;
   }
 }
-
-module.exports = { initializeModels };

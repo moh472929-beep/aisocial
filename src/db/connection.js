@@ -1,23 +1,28 @@
-// src/db/connection.js
-const mongoose = require('mongoose');
-const logger = require('../middleware/logger') || console;
+import mongoose from "mongoose";
+import { logger } from "../utils/logger.js";
 
-mongoose.connection.on('connected', () => {
-  logger.info('✅ Mongoose connected to database');
-});
+let db = null;
 
-mongoose.connection.on('error', (err) => {
-  logger.error('❌ Mongoose connection error:', err);
-});
+export async function connectDB() {
+  try {
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI not found in environment variables");
+    }
 
-mongoose.connection.on('disconnected', () => {
-  logger.warn('⚠️ Mongoose disconnected');
-});
+    logger.info("⏳ Connecting to MongoDB...");
+    const conn = await mongoose.connect(process.env.MONGO_URI);
 
-process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  logger.info('Mongoose connection closed on app termination');
-  process.exit(0);
-});
+    db = conn.connection.db;
+    logger.info("✅ MongoDB connected successfully");
 
-module.exports = mongoose;
+    return db;
+  } catch (error) {
+    logger.error("❌ MongoDB connection failed:", error);
+    throw error;
+  }
+}
+
+export function getDb() {
+  if (!db) throw new Error("Database not initialized. Call connectDB() first.");
+  return db;
+}
