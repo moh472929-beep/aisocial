@@ -1,36 +1,38 @@
+// src/db/init.js
 const mongoose = require('mongoose');
-const { initializeModels, getModel } = require('./models');
-require('dotenv').config();
+const { initializeModels } = require('./models');
+const logger = require('../middleware/logger') || console;
 
-const connectDB = async () => {
-  const uri = process.env.MONGODB_URI;
-  const dbName = process.env.DB_NAME || "aisocial";
+let isConnected = false;
 
-  console.log("🔹 MONGODB_URI:", uri);
+async function connectDB() {
+  if (isConnected) return mongoose.connection;
 
-  if (!uri) {
-    console.warn("⚠️ MongoDB URI missing! Running without DB (static preview mode)");
-    return;
+  const mongoURI = process.env.MONGODB_URI;
+
+  if (!mongoURI) {
+    logger.error('❌ MongoDB URI is not defined.');
+    throw new Error('MongoDB URI missing in environment variables.');
   }
 
   try {
-    // 🟢 الاتصال بقاعدة البيانات
-    await mongoose.connect(uri, {
+    logger.info('🔄 Connecting to MongoDB...');
+    await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      dbName: dbName,
     });
 
-    console.log(`✅ Connected to MongoDB Database: ${dbName}`);
+    isConnected = true;
+    logger.info('✅ MongoDB connected successfully.');
 
-    // 🧩 بعد الاتصال، فعّل الموديلات
-    await initializeModels(mongoose.connection);
-    console.log('📦 All models initialized successfully');
+    await initializeModels();
+    logger.info('✅ Models initialized successfully.');
+
+    return mongoose.connection;
   } catch (error) {
-    console.error('❌ MongoDB connection failed:', error.message);
+    logger.error('❌ MongoDB connection failed:', error);
     throw error;
   }
-};
+}
 
 module.exports = connectDB;
-module.exports.getModel = getModel;

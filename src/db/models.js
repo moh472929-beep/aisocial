@@ -1,48 +1,24 @@
-const User = require('../models/User');
-const Post = require('../models/Post');
-const Analytics = require('../models/Analytics');
-const AutoResponse = require('../models/AutoResponse');
-const CompetitorAnalytics = require('../models/CompetitorAnalytics');
-const FacebookPage = require('../models/FacebookPage');
-const TrendingTopic = require('../models/TrendingTopic');
+// src/db/models.js
+const fs = require('fs');
+const path = require('path');
+const logger = require('../middleware/logger') || console;
 
-const modelInstances = {};
-
-const initializeModels = async (connection) => {
-  if (!connection || connection.readyState !== 1) {
-    throw new Error("Database not initialized. Call connectDB() first.");
-  }
-
+async function initializeModels() {
   try {
-    modelInstances.User = new User();
-    modelInstances.Post = new Post();
-    modelInstances.Analytics = new Analytics();
-    modelInstances.AutoResponse = new AutoResponse();
-    modelInstances.CompetitorAnalytics = new CompetitorAnalytics();
-    modelInstances.FacebookPage = new FacebookPage();
-    modelInstances.TrendingTopic = new TrendingTopic();
+    const modelsDir = path.join(__dirname, '../models');
+    const modelFiles = fs.readdirSync(modelsDir).filter(file => file.endsWith('.js'));
 
-    for (const name in modelInstances) {
-      if (modelInstances[name].initialize) {
-        await modelInstances[name].initialize();
-      }
+    for (const file of modelFiles) {
+      const modelPath = path.join(modelsDir, file);
+      require(modelPath);
+      logger.info(`✅ Loaded model: ${file}`);
     }
 
-    console.log("✅ Models initialized successfully");
+    logger.info('✅ All models initialized successfully.');
   } catch (error) {
-    console.error("❌ Error initializing models:", error);
+    logger.error('❌ Error initializing models:', error);
     throw error;
   }
-};
+}
 
-const getModel = (name) => {
-  if (!modelInstances[name]) {
-    throw new Error(`Model ${name} not found`);
-  }
-  return modelInstances[name];
-};
-
-module.exports = {
-  initializeModels,
-  getModel,
-};
+module.exports = { initializeModels };
