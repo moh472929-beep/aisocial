@@ -6,13 +6,14 @@ const CompetitorAnalytics = require('../models/CompetitorAnalytics');
 const FacebookPage = require('../models/FacebookPage');
 const TrendingTopic = require('../models/TrendingTopic');
 
-// Model instances cache
 const modelInstances = {};
 
-// Initialize all models
-const initializeModels = async () => {
+const initializeModels = async (connection) => {
+  if (!connection || connection.readyState !== 1) {
+    throw new Error("Database not initialized. Call connectDB() first.");
+  }
+
   try {
-    // Initialize each model
     modelInstances.User = new User();
     modelInstances.Post = new Post();
     modelInstances.Analytics = new Analytics();
@@ -21,26 +22,24 @@ const initializeModels = async () => {
     modelInstances.FacebookPage = new FacebookPage();
     modelInstances.TrendingTopic = new TrendingTopic();
 
-    // Initialize model collections
-    for (const modelName in modelInstances) {
-      if (modelInstances[modelName].initialize) {
-        await modelInstances[modelName].initialize();
+    for (const name in modelInstances) {
+      if (modelInstances[name].initialize) {
+        await modelInstances[name].initialize();
       }
     }
 
-    console.log('✅ All models initialized successfully');
+    console.log("✅ Models initialized successfully");
   } catch (error) {
-    console.error('❌ Error initializing models:', error);
+    console.error("❌ Error initializing models:", error);
     throw error;
   }
 };
 
-// Get model instance by name
-const getModel = modelName => {
-  if (!modelInstances[modelName]) {
-    throw new Error(`Model ${modelName} not found`);
+const getModel = (name) => {
+  if (!modelInstances[name]) {
+    throw new Error(`Model ${name} not found`);
   }
-  return modelInstances[modelName];
+  return modelInstances[name];
 };
 
 module.exports = {
