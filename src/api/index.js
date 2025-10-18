@@ -1,30 +1,57 @@
 import express from "express";
-
-// استيراد جميع المسارات الفرعية
-import authRoutes from "./auth/index.js";
-import userRoutes from "./users/index.js";
-import facebookRoutes from "./facebook/index.js";
-import aiRoutes from "./ai/index.js";
-import analyticsRoutes from "./analytics/index.js";
-import autoResponseRoutes from "./autoresponse/index.js";
+import path from "path";
+import { pathToFileURL } from "url";
 
 const router = express.Router();
 
-// ربط كل مجموعة راوتر بمسارها الأساسي
-router.use("/auth", authRoutes);
-router.use("/users", userRoutes);
-router.use("/facebook", facebookRoutes);
-router.use("/ai", aiRoutes);
-router.use("/analytics", analyticsRoutes);
-router.use("/autoresponse", autoResponseRoutes);
+// دالة لتحميل الراوترات من المسار الصحيح ديناميكياً
+async function loadRoute(relativePath) {
+  const fullPath = path.join(process.cwd(), "src", "api", relativePath);
+  const moduleURL = pathToFileURL(fullPath).href;
+  const module = await import(moduleURL);
+  return module.default || module;
+}
 
-// مسار تجريبي للتأكد من عمل الـ API
-router.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Facebook AI Manager API is running 🚀",
-    routes: ["/auth", "/users", "/facebook", "/ai", "/analytics", "/autoresponse"]
-  });
-});
+async function initializeRoutes() {
+  try {
+    const authRoutes = await loadRoute("auth/index.js");
+    const userRoutes = await loadRoute("users/index.js");
+    const facebookRoutes = await loadRoute("facebook/index.js");
+    const aiRoutes = await loadRoute("ai/index.js");
+    const analyticsRoutes = await loadRoute("analytics/index.js");
+    const autoResponseRoutes = await loadRoute("autoresponse/index.js");
+
+    // ربط الراوترات بالمسارات الخاصة بها
+    router.use("/auth", authRoutes);
+    router.use("/users", userRoutes);
+    router.use("/facebook", facebookRoutes);
+    router.use("/ai", aiRoutes);
+    router.use("/analytics", analyticsRoutes);
+    router.use("/autoresponse", autoResponseRoutes);
+
+    // مسار تجريبي للتأكد من عمل الـ API
+    router.get("/", (req, res) => {
+      res.json({
+        success: true,
+        message: "✅ Facebook AI Manager API is running 🚀",
+        routes: [
+          "/auth",
+          "/users",
+          "/facebook",
+          "/ai",
+          "/analytics",
+          "/autoresponse",
+        ],
+      });
+    });
+
+    console.log("✅ All API routes initialized successfully");
+  } catch (error) {
+    console.error("❌ Error initializing API routes:", error);
+  }
+}
+
+// استدعاء التهيئة
+await initializeRoutes();
 
 export default router;
