@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="analyticsDashboardTitle">تحليلات الذكاء الاصطناعي - Facebook AI Manager</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            min-height: 100vh;
+            background: var(--background-color);
+        }
+        
+        .sidebar {
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 2rem 1rem;
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar-header .logo {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .user-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .menu-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .menu-item a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .menu-item a:hover,
+        .menu-item a.active {
+            background: rgba(24, 119, 242, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-title {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+        
+        .time-filter {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .time-filter select {
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+        
+        .content-section {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+        
+        .posts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .posts-table th,
+        .posts-table td {
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .posts-table th {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .posts-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .post-preview {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .engagement-metric {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .best-times-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .time-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .time-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .engagement-score {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        /* Competitor Analysis Styles */
+        .competitor-input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .competitor-input {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+        }
+        
+        .competitor-results {
+            margin-top: 2rem;
+        }
+        
+        .competitor-summary {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .competitor-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .competitor-stat-card {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .competitor-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .keyword-tag {
+            background: rgba(24, 119, 242, 0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .competitor-input-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fab fa-facebook"></i>
+                    Facebook AI Manager
+                </div>
+                <div class="user-info" id="user-info">
+                    جاري التحميل...
+                </div>
+            </div>
+            
+            <nav>
+                <ul class="menu">
+                    <li class="menu-item">
+                        <a href="ai-dashboard.html#dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span data-translate="dashboardMenuItem">لوحة التحكم</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="ai-dashboard.html#ai-tools">
+                            <i class="fas fa-robot"></i>
+                            <span data-translate="aiToolsMenuItem">أدوات الذكاء الاصطناعي</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="ai-dashboard.html#facebook-pages">
+                            <i class="fab fa-facebook"></i>
+                            <span data-translate="facebookPagesMenuItem">صفحات الفيسبوك</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#analytics" class="active">
+                            <i class="fas fa-chart-line"></i>
+                            <span data-translate="analyticsMenuItem">التحليلات</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="autoresponse-dashboard.html">
+                            <i class="fas fa-reply"></i>
+                            <span data-translate="autoResponseMenuItem">الرد التلقائي</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="ai-dashboard.html#settings">
+                            <i class="fas fa-cog"></i>
+                            <span data-translate="settingsMenuItem">الإعدادات</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span data-translate="logoutMenuItem">تسجيل الخروج</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title" data-translate="analyticsTitle">تحليلات الذكاء الاصطناعي</h1>
+                <div class="time-filter">
+                    <label for="time-period" data-translate="timePeriodLabel">الفترة الزمنية:</label>
+                    <select id="time-period">
+                        <option value="daily" data-translate="dailyOption">يومي</option>
+                        <option value="weekly" data-translate="weeklyOption">أسبوعي</option>
+                        <option value="monthly" data-translate="monthlyOption">شهري</option>
+                    </select>
+                    <button id="refresh-analytics" class="btn btn-primary" data-translate="refreshButton">
+                        <i class="fas fa-sync"></i> تحديث
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 data-translate="totalPosts">إجمالي المنشورات</h3>
+                    <div class="stat-value" id="total-posts">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3 data-translate="engagementRate">معدل التفاعل</h3>
+                    <div class="stat-value" id="engagement-rate">0%</div>
+                </div>
+                <div class="stat-card">
+                    <h3 data-translate="followerGrowth">نمو المتابعين</h3>
+                    <div class="stat-value" id="follower-growth">0%</div>
+                </div>
+                <div class="stat-card">
+                    <h3 data-translate="topPosts">أفضل المنشورات</h3>
+                    <div class="stat-value" id="top-posts">0</div>
+                </div>
+            </div>
+            
+            <!-- Loading indicator -->
+            <div id="loading-indicator" class="loading" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span data-translate="loadingAnalytics">جاري تحميل التحليلات...</span>
+            </div>
+            
+            <!-- Error message -->
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            
+            <!-- Charts Section -->
+            <div class="content-section">
+                <h2 class="section-title" data-translate="performanceCharts">مخططات الأداء</h2>
+                
+                <div class="chart-container">
+                    <canvas id="follower-growth-chart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="engagement-rate-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Top Posts Section -->
+            <div class="content-section">
+                <h2 class="section-title" data-translate="topPerformingPosts">أفضل المنشورات من حيث التفاعل</h2>
+                
+                <table class="posts-table">
+                    <thead>
+                        <tr>
+                            <th data-translate="postContent">محتوى المنشور</th>
+                            <th data-translate="likes">الإعجابات</th>
+                            <th data-translate="shares">المشاركات</th>
+                            <th data-translate="comments">التعليقات</th>
+                            <th data-translate="totalEngagement">إجمالي التفاعل</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top-posts-table">
+                        <tr>
+                            <td colspan="5" class="loading" data-translate="noPostsData">لا توجد بيانات منشورات</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Best Posting Times Section -->
+            <div class="content-section">
+                <h2 class="section-title" data-translate="bestPostingTimes">أفضل أوقات النشر</h2>
+                
+                <div class="best-times-grid" id="best-times-container">
+                    <div class="loading" data-translate="noTimeData">لا توجد بيانات أوقات</div>
+                </div>
+            </div>
+            
+            <!-- Competitor Analysis Section -->
+            <div class="content-section">
+                <h2 class="section-title" data-translate="competitorInsights">رؤى المنافسين</h2>
+                
+                <div class="competitor-input-group">
+                    <input type="text" id="competitor-page-id" class="competitor-input" placeholder="أدخل معرف صفحة المنافس أو الرابط" data-translate="competitorPagePlaceholder">
+                    <button id="analyze-competitor" class="btn btn-primary" data-translate="analyzeCompetitorButton">
+                        <i class="fas fa-search"></i> تحليل المنافس
+                    </button>
+                </div>
+                
+                <div id="competitor-results" class="competitor-results" style="display: none;">
+                    <div class="competitor-summary">
+                        <h3 data-translate="competitorSummary">ملخص التحليل</h3>
+                        <p id="competitor-summary-text"></p>
+                    </div>
+                    
+                    <div class="competitor-stats-grid">
+                        <div class="competitor-stat-card">
+                            <h4 data-translate="totalLikes">إجمالي الإعجابات</h4>
+                            <div class="stat-value" id="competitor-total-likes">0</div>
+                        </div>
+                        <div class="competitor-stat-card">
+                            <h4 data-translate="totalShares">إجمالي المشاركات</h4>
+                            <div class="stat-value" id="competitor-total-shares">0</div>
+                        </div>
+                        <div class="competitor-stat-card">
+                            <h4 data-translate="totalComments">إجمالي التعليقات</h4>
+                            <div class="stat-value" id="competitor-total-comments">0</div>
+                        </div>
+                        <div class="competitor-stat-card">
+                            <h4 data-translate="engagementRate">معدل التفاعل</h4>
+                            <div class="stat-value" id="competitor-engagement-rate">0%</div>
+                        </div>
+                    </div>
+                    
+                    <h3 data-translate="topPerformingPosts">أفضل المنشورات من حيث التفاعل</h3>
+                    <table class="posts-table">
+                        <thead>
+                            <tr>
+                                <th data-translate="postContent">محتوى المنشور</th>
+                                <th data-translate="likes">الإعجابات</th>
+                                <th data-translate="shares">المشاركات</th>
+                                <th data-translate="comments">التعليقات</th>
+                                <th data-translate="totalEngagement">إجمالي التفاعل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="competitor-top-posts-table">
+                            <tr>
+                                <td colspan="5" class="loading" data-translate="noPostsData">لا توجد بيانات منشورات</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3 data-translate="commonKeywords">الكلمات المفتاحية الشائعة</h3>
+                    <div class="competitor-keywords" id="competitor-keywords">
+                        <span class="loading" data-translate="noKeywordsData">لا توجد بيانات كلمات مفتاحية</span>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem;">
+                        <button id="download-report" class="btn btn-secondary" data-translate="downloadReportButton">
+                            <i class="fas fa-download"></i> تنزيل التقرير
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/language-switcher.js"></script>
+    <script>
+        // Dashboard functionality
+        let currentUser = null;
+        let analyticsData = [];
+        let followerGrowthChart = null;
+        let engagementRateChart = null;
+        let competitorAnalytics = null;
+        
+        // Load user data
+        async function loadUserData() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/.netlify/functions/api/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUser = data.user;
+                    updateUserInfo();
+                } else {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // Update user info display
+        function updateUserInfo() {
+            const userInfoElement = document.getElementById('user-info');
+            if (currentUser) {
+                userInfoElement.innerHTML = `
+                    <strong>${currentUser.fullName}</strong><br>
+                    <small>${currentUser.subscription === 'free' ? 'مجاني' : 'مميز'}</small><br>
+                    <small>منشورات متبقية: ${currentUser.postsRemaining || 0}</small>
+                `;
+            }
+        }
+        
+        // Load analytics data
+        async function loadAnalyticsData(period = 'daily') {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loading-indicator').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            
+            try {
+                // Fetch analytics data from backend
+                const response = await fetch(`/.netlify/functions/api/analytics/dashboard?period=${period}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    analyticsData = data.analytics;
+                    updateDashboard();
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                console.error('Error loading analytics data:', error);
+                showError('حدث خطأ في الاتصال');
+            } finally {
+                document.getElementById('loading-indicator').style.display = 'none';
+            }
+        }
+        
+        // Update dashboard with analytics data
+        function updateDashboard() {
+            if (analyticsData.length === 0) {
+                showError('لا توجد بيانات تحليلية متاحة');
+                return;
+            }
+            
+            // Update summary stats
+            let totalPosts = 0;
+            let totalEngagementRate = 0;
+            let totalFollowerGrowth = 0;
+            let totalTopPosts = 0;
+            
+            analyticsData.forEach(page => {
+                totalPosts += page.totalPosts || 0;
+                totalEngagementRate += page.engagementRate || 0;
+                totalFollowerGrowth += page.followerGrowth || 0;
+                totalTopPosts += page.topPosts ? page.topPosts.length : 0;
+            });
+            
+            document.getElementById('total-posts').textContent = totalPosts;
+            document.getElementById('engagement-rate').textContent = `${(totalEngagementRate / analyticsData.length).toFixed(2)}%`;
+            document.getElementById('follower-growth').textContent = `${(totalFollowerGrowth / analyticsData.length).toFixed(2)}%`;
+            document.getElementById('top-posts').textContent = totalTopPosts;
+            
+            // Update charts
+            updateCharts();
+            
+            // Update top posts table
+            updateTopPostsTable();
+            
+            // Update best posting times
+            updateBestPostingTimes();
+        }
+        
+        // Update charts
+        function updateCharts() {
+            // Follower growth chart
+            const followerGrowthCtx = document.getElementById('follower-growth-chart').getContext('2d');
+            
+            if (followerGrowthChart) {
+                followerGrowthChart.destroy();
+            }
+            
+            const followerGrowthData = {
+                labels: analyticsData.map((_, index) => `الصفحة ${index + 1}`),
+                datasets: [{
+                    label: 'نمو المتابعين (%)',
+                    data: analyticsData.map(page => page.followerGrowth || 0),
+                    backgroundColor: 'rgba(24, 119, 242, 0.2)',
+                    borderColor: 'rgba(24, 119, 242, 1)',
+                    borderWidth: 2
+                }]
+            };
+            
+            followerGrowthChart = new Chart(followerGrowthCtx, {
+                type: 'bar',
+                data: followerGrowthData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#ffffff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#ffffff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Engagement rate chart
+            const engagementRateCtx = document.getElementById('engagement-rate-chart').getContext('2d');
+            
+            if (engagementRateChart) {
+                engagementRateChart.destroy();
+            }
+            
+            const engagementRateData = {
+                labels: analyticsData.map((_, index) => `الصفحة ${index + 1}`),
+                datasets: [{
+                    label: 'معدل التفاعل (%)',
+                    data: analyticsData.map(page => page.engagementRate || 0),
+                    backgroundColor: 'rgba(0, 184, 148, 0.2)',
+                    borderColor: 'rgba(0, 184, 148, 1)',
+                    borderWidth: 2
+                }]
+            };
+            
+            engagementRateChart = new Chart(engagementRateCtx, {
+                type: 'line',
+                data: engagementRateData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#ffffff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#ffffff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update top posts table
+        function updateTopPostsTable() {
+            const tableBody = document.getElementById('top-posts-table');
+            
+            // Collect all top posts from all pages
+            let allTopPosts = [];
+            analyticsData.forEach(page => {
+                if (page.topPosts && page.topPosts.length > 0) {
+                    allTopPosts = allTopPosts.concat(page.topPosts);
+                }
+            });
+            
+            if (allTopPosts.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="loading">لا توجد بيانات منشورات</td></tr>';
+                return;
+            }
+            
+            // Sort by total engagement
+            allTopPosts.sort((a, b) => {
+                const engagementA = (a.likes || 0) + (a.shares || 0) + (a.comments || 0);
+                const engagementB = (b.likes || 0) + (b.shares || 0) + (b.comments || 0);
+                return engagementB - engagementA;
+            });
+            
+            // Limit to top 10 posts
+            allTopPosts = allTopPosts.slice(0, 10);
+            
+            tableBody.innerHTML = allTopPosts.map(post => `
+                <tr>
+                    <td class="post-preview">${post.content || 'لا يوجد محتوى'}</td>
+                    <td>${post.likes || 0}</td>
+                    <td>${post.shares || 0}</td>
+                    <td>${post.comments || 0}</td>
+                    <td>${(post.likes || 0) + (post.shares || 0) + (post.comments || 0)}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Update best posting times
+        function updateBestPostingTimes() {
+            const container = document.getElementById('best-times-container');
+            
+            // Collect all best posting times from all pages
+            let allBestTimes = [];
+            analyticsData.forEach(page => {
+                if (page.bestPostTimes && page.bestPostTimes.length > 0) {
+                    allBestTimes = allBestTimes.concat(page.bestPostTimes);
+                }
+            });
+            
+            if (allBestTimes.length === 0) {
+                container.innerHTML = '<div class="loading">لا توجد بيانات أوقات</div>';
+                return;
+            }
+            
+            // Group by hour and calculate average engagement
+            const timeGroups = {};
+            allBestTimes.forEach(time => {
+                if (!timeGroups[time.hour]) {
+                    timeGroups[time.hour] = { count: 0, totalEngagement: 0 };
+                }
+                timeGroups[time.hour].count++;
+                timeGroups[time.hour].totalEngagement += time.averageEngagement;
+            });
+            
+            // Calculate average engagement per hour
+            const avgTimes = Object.keys(timeGroups).map(hour => ({
+                hour: parseInt(hour),
+                averageEngagement: timeGroups[hour].totalEngagement / timeGroups[hour].count
+            }));
+            
+            // Sort by average engagement and take top 5
+            avgTimes.sort((a, b) => b.averageEngagement - a.averageEngagement);
+            const topTimes = avgTimes.slice(0, 5);
+            
+            container.innerHTML = topTimes.map(time => `
+                <div class="time-card">
+                    <div class="time-value">${time.hour}:00</div>
+                    <div class="engagement-score">${time.averageEngagement.toFixed(2)}</div>
+                    <div data-translate="engagementScore">درجة التفاعل</div>
+                </div>
+            `).join('');
+        }
+        
+        // Analyze competitor
+        async function analyzeCompetitor() {
+            const token = localStorage.getItem('token');
+            const competitorPageId = document.getElementById('competitor-page-id').value.trim();
+            
+            if (!competitorPageId) {
+                showError('يرجى إدخال معرف صفحة المنافس أو الرابط');
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loading-indicator').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            
+            try {
+                // Extract page ID from URL if needed
+                let pageId = competitorPageId;
+                if (pageId.includes('facebook.com/')) {
+                    const urlParts = pageId.split('/');
+                    pageId = urlParts[urlParts.length - 1];
+                }
+                
+                // Send request to analyze competitor
+                const response = await fetch('/.netlify/functions/api/competitor/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ competitorPageId: pageId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    competitorAnalytics = data.analytics;
+                    updateCompetitorResults();
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                console.error('Error analyzing competitor:', error);
+                showError('حدث خطأ في تحليل المنافس');
+            } finally {
+                document.getElementById('loading-indicator').style.display = 'none';
+            }
+        }
+        
+        // Update competitor results
+        function updateCompetitorResults() {
+            if (!competitorAnalytics) {
+                return;
+            }
+            
+            // Show results section
+            document.getElementById('competitor-results').style.display = 'block';
+            
+            // Update summary
+            document.getElementById('competitor-summary-text').textContent = competitorAnalytics.summary || 'لا توجد ملخصات';
+            
+            // Update stats
+            const stats = competitorAnalytics.engagement_stats || {};
+            document.getElementById('competitor-total-likes').textContent = stats.total_likes || 0;
+            document.getElementById('competitor-total-shares').textContent = stats.total_shares || 0;
+            document.getElementById('competitor-total-comments').textContent = stats.total_comments || 0;
+            document.getElementById('competitor-engagement-rate').textContent = `${stats.engagement_rate || 0}%`;
+            
+            // Update top posts table
+            const topPostsTable = document.getElementById('competitor-top-posts-table');
+            const topPosts = competitorAnalytics.top_posts || [];
+            
+            if (topPosts.length === 0) {
+                topPostsTable.innerHTML = '<tr><td colspan="5" class="loading">لا توجد بيانات منشورات</td></tr>';
+            } else {
+                topPostsTable.innerHTML = topPosts.map(post => `
+                    <tr>
+                        <td class="post-preview">${post.message || 'لا يوجد محتوى'}</td>
+                        <td>${post.likes || 0}</td>
+                        <td>${post.shares || 0}</td>
+                        <td>${post.comments || 0}</td>
+                        <td>${(post.likes || 0) + (post.shares || 0) + (post.comments || 0)}</td>
+                    </tr>
+                `).join('');
+            }
+            
+            // Update keywords
+            const keywordsContainer = document.getElementById('competitor-keywords');
+            const keywords = competitorAnalytics.keywords || [];
+            
+            if (keywords.length === 0) {
+                keywordsContainer.innerHTML = '<span class="loading">لا توجد بيانات كلمات مفتاحية</span>';
+            } else {
+                keywordsContainer.innerHTML = keywords.map(keyword => 
+                    `<span class="keyword-tag">${keyword}</span>`
+                ).join('');
+            }
+        }
+        
+        // Download report
+        function downloadReport() {
+            if (!competitorAnalytics) {
+                showError('لا توجد بيانات لتنزيلها');
+                return;
+            }
+            
+            // Create CSV content
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Add summary
+            csvContent += "ملخص التحليل\\n";
+            csvContent += `"${competitorAnalytics.summary || 'لا توجد ملخصات'}"\\n\\n`;
+            
+            // Add stats
+            csvContent += "الإحصائيات\\n";
+            const stats = competitorAnalytics.engagement_stats || {};
+            csvContent += `إجمالي الإعجابات,${stats.total_likes || 0}\\n`;
+            csvContent += `إجمالي المشاركات,${stats.total_shares || 0}\\n`;
+            csvContent += `إجمالي التعليقات,${stats.total_comments || 0}\\n`;
+            csvContent += `معدل التفاعل,${stats.engagement_rate || 0}%\\n\\n`;
+            
+            // Add top posts
+            csvContent += "أفضل المنشورات\\n";
+            csvContent += "المحتوى,الإعجابات,المشاركات,التعليقات,إجمالي التفاعل\\n";
+            
+            const topPosts = competitorAnalytics.top_posts || [];
+            topPosts.forEach(post => {
+                const totalEngagement = (post.likes || 0) + (post.shares || 0) + (post.comments || 0);
+                csvContent += `"${post.message || 'لا يوجد محتوى'}",${post.likes || 0},${post.shares || 0},${post.comments || 0},${totalEngagement}\\n`;
+            });
+            
+            // Add keywords
+            csvContent += "\\nالكلمات المفتاحية\\n";
+            const keywords = competitorAnalytics.keywords || [];
+            csvContent += keywords.join(",") + "\\n";
+            
+            // Create download link
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "تقرير_المنافس.csv");
+            document.body.appendChild(link);
+            
+            // Trigger download
+            link.click();
+            
+            // Clean up
+            document.body.removeChild(link);
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        
+        // Refresh analytics data
+        async function refreshAnalytics() {
+            const period = document.getElementById('time-period').value;
+            await loadAnalyticsData(period);
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            loadAnalyticsData();
+            
+            // Time period change event
+            document.getElementById('time-period').addEventListener('change', function() {
+                loadAnalyticsData(this.value);
+            });
+            
+            // Refresh button event
+            document.getElementById('refresh-analytics').addEventListener('click', refreshAnalytics);
+            
+            // Competitor analysis button event
+            document.getElementById('analyze-competitor').addEventListener('click', analyzeCompetitor);
+            
+            // Download report button event
+            document.getElementById('download-report').addEventListener('click', downloadReport);
+        });
+    </script>
+</body>
+</html>

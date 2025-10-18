@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook AI Manager - Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .language-selector {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .language-selector select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .chat-demo {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .permissions-demo {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .rtl {
+            direction: rtl;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Facebook AI Manager - Demo</h1>
+            <p>Experience the new features: Dynamic Chat Alignment & Granular AI Permissions</p>
+        </div>
+        
+        <div class="language-selector">
+            <label for="language">Select Language:</label>
+            <select id="language" onchange="changeLanguage()">
+                <option value="en">English</option>
+                <option value="ar">Arabic</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="es">Spanish</option>
+                <option value="ru">Russian</option>
+            </select>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <h3>Dynamic Chat Alignment</h3>
+                <p>The chat interface automatically adjusts its position based on the selected language:</p>
+                <ul>
+                    <li><strong>RTL languages</strong> (Arabic): Chat aligns to the <strong>left</strong></li>
+                    <li><strong>LTR languages</strong> (English, French, etc.): Chat aligns to the <strong>right</strong></li>
+                </ul>
+                <p>Try changing the language above to see the chat position change!</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>Granular AI Permissions</h3>
+                <p>Control exactly what the AI can do with these new permissions:</p>
+                <ul>
+                    <li>Auto Publishing</li>
+                    <li>Post Scheduling</li>
+                    <li>Auto Content Generation</li>
+                </ul>
+                <p>Each permission can be toggled independently for fine-grained control.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>Multi-Language Support</h3>
+                <p>Now supporting 6 languages:</p>
+                <ul>
+                    <li>English</li>
+                    <li>Arabic</li>
+                    <li>French</li>
+                    <li>German</li>
+                    <li>Spanish</li>
+                    <li>Russian</li>
+                </ul>
+                <p>All UI elements are fully translated and adapted for each language.</p>
+            </div>
+        </div>
+        
+        <div class="chat-demo">
+            <h2>AI Chat Demo</h2>
+            <p>Below is a demonstration of the chat interface that automatically adjusts its position based on the selected language.</p>
+            <div id="chat-placeholder" style="height: 200px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; margin: 20px 0;">
+                <p>Chat interface would appear here in a real implementation</p>
+            </div>
+            <p><em>In a full implementation, the chat would appear as a floating widget that changes position based on language selection.</em></p>
+        </div>
+        
+        <div class="permissions-demo">
+            <h2>AI Permissions Demo</h2>
+            <p>Below is a demonstration of the granular AI permissions interface.</p>
+            <div id="permissions-placeholder" style="height: 300px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; margin: 20px 0;">
+                <p>AI permissions interface would appear here in a real implementation</p>
+            </div>
+            <p><em>In a full implementation, users would be able to toggle individual AI permissions on/off.</em></p>
+        </div>
+    </div>
+
+    <script>
+        function changeLanguage() {
+            const language = document.getElementById('language').value;
+            const isRTL = language === 'ar';
+            
+            // Update body class for RTL languages
+            if (isRTL) {
+                document.body.classList.add('rtl');
+            } else {
+                document.body.classList.remove('rtl');
+            }
+            
+            // Update placeholder text
+            const chatPlaceholder = document.getElementById('chat-placeholder');
+            const permissionsPlaceholder = document.getElementById('permissions-placeholder');
+            
+            if (isRTL) {
+                chatPlaceholder.innerHTML = '<p>سيظهر واجهة الدردشة هنا في التنفيذ الحقيقي</p>';
+                permissionsPlaceholder.innerHTML = '<p>سيظهر واجهة أذونات الذكاء الاصطناعي هنا في التنفيذ الحقيقي</p>';
+            } else {
+                chatPlaceholder.innerHTML = '<p>Chat interface would appear here in a real implementation</p>';
+                permissionsPlaceholder.innerHTML = '<p>AI permissions interface would appear here in a real implementation</p>';
+            }
+            
+            // Show position change message
+            const message = isRTL ? 
+                'Chat position changed to LEFT side for Arabic (RTL)' : 
+                'Chat position changed to RIGHT side for ' + getLanguageName(language) + ' (LTR)';
+            
+            alert(message);
+        }
+        
+        function getLanguageName(code) {
+            const languages = {
+                'en': 'English',
+                'fr': 'French',
+                'de': 'German',
+                'es': 'Spanish',
+                'ru': 'Russian'
+            };
+            return languages[code] || 'Unknown';
+        }
+    </script>
+</body>
+</html>

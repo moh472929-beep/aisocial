@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="registerPageTitle">إنشاء حساب - Facebook AI Manager</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .register-container {
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: rgba(30, 30, 40, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+        }
+        
+        .logo i {
+            margin-left: 0.5rem;
+            color: #1877f2;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #1877f2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(24, 119, 242, 0.4);
+        }
+        
+        .error-message {
+            color: #ff7675;
+            background-color: rgba(255, 118, 117, 0.1);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            border: 1px solid rgba(255, 118, 117, 0.3);
+        }
+        
+        .success-message {
+            color: #00b894;
+            background-color: rgba(0, 184, 148, 0.1);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            border: 1px solid rgba(0, 184, 148, 0.3);
+        }
+        
+        .links {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        
+        .links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: color 0.3s ease;
+        }
+        
+        .links a:hover {
+            color: #1877f2;
+            text-decoration: underline;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .password-strength {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .strength-weak { color: #ff7675; }
+        .strength-medium { color: #fdcb6e; }
+        .strength-strong { color: #00b894; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <i class="fab fa-facebook"></i>
+                <span data-translate="logoText">Facebook AI Manager</span>
+            </div>
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link" data-translate="home">الرئيسية</a>
+                <a href="login.html" class="nav-link" data-translate="login">تسجيل الدخول</a>
+                <a href="dashboard.html" class="nav-link" data-translate="dashboard">لوحة التحكم</a>
+            </nav>
+            <div class="language-selector">
+                <div class="selected-language">
+                    <img src="flags/ar.svg" alt="العربية" class="flag-icon">
+                    <span data-translate="selectedLanguage">العربية</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="language-dropdown">
+                    <div class="language-option" data-lang="ar">
+                        <img src="flags/ar.svg" alt="العربية" class="flag-icon">
+                        <span data-translate="arabic">العربية</span>
+                    </div>
+                    <div class="language-option" data-lang="en">
+                        <img src="flags/en.svg" alt="English" class="flag-icon">
+                        <span data-translate="english">English</span>
+                    </div>
+                    <div class="language-option" data-lang="fr">
+                        <img src="flags/fr.svg" alt="French" class="flag-icon">
+                        <span data-translate="french">Français</span>
+                    </div>
+                    <div class="language-option" data-lang="de">
+                        <img src="flags/de.svg" alt="German" class="flag-icon">
+                        <span data-translate="german">Deutsch</span>
+                    </div>
+                    <div class="language-option" data-lang="es">
+                        <img src="flags/es.svg" alt="Spanish" class="flag-icon">
+                        <span data-translate="spanish">Español</span>
+                    </div>
+                    <div class="language-option" data-lang="ru">
+                        <img src="https://flagcdn.com/w20/ru.png" alt="Русский" class="flag-icon">
+                        <span data-translate="russian">Русский</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <main>
+            <div class="register-container">
+                <div class="logo">
+                    <i class="fab fa-facebook"></i>
+                    <span data-translate="logoText">Facebook AI Manager</span>
+                </div>
+                
+                <div id="error-message" class="error-message"></div>
+                <div id="success-message" class="success-message"></div>
+                
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="fullName" data-translate="fullNameLabel">الاسم الكامل</label>
+                        <input type="text" id="fullName" class="form-control" required 
+                               placeholder="أدخل اسمك الكامل" data-translate="fullNamePlaceholder">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="username" data-translate="usernameLabel">اسم المستخدم</label>
+                        <input type="text" id="username" class="form-control" required 
+                               placeholder="أدخل اسم المستخدم" data-translate="usernamePlaceholder">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email" data-translate="emailLabel">البريد الإلكتروني</label>
+                        <input type="email" id="email" class="form-control" required 
+                               placeholder="أدخل البريد الإلكتروني" data-translate="emailPlaceholder">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" data-translate="passwordLabel">كلمة المرور</label>
+                        <input type="password" id="password" class="form-control" required 
+                               placeholder="أدخل كلمة المرور" data-translate="passwordPlaceholder">
+                        <div id="password-strength" class="password-strength"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword" data-translate="confirmPasswordLabel">تأكيد كلمة المرور</label>
+                        <input type="password" id="confirmPassword" class="form-control" required 
+                               placeholder="أكد كلمة المرور" data-translate="confirmPasswordPlaceholder">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span id="register-text" data-translate="registerButton">إنشاء حساب</span>
+                        <div id="loading" class="loading">
+                            <i class="fas fa-spinner"></i> <span data-translate="loadingText">جاري إنشاء الحساب...</span>
+                        </div>
+                    </button>
+                </form>
+                
+                <div class="links">
+                    <a href="index.html" data-translate="homeLink">الرئيسية</a> | 
+                    <a href="login.html" data-translate="loginLink">تسجيل الدخول</a> | 
+                    <a href="dashboard.html" data-translate="dashboardLink">لوحة التحكم</a>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="index.html" data-translate="home">الرئيسية</a>
+                    <a href="dashboard.html" data-translate="dashboard">لوحة التحكم</a>
+                    <a href="subscription.html" data-translate="subscription">الاشتراك</a>
+                    <a href="payment.html" data-translate="payment">الدفع</a>
+                </div>
+                <p data-translate="copyright">&copy; 2025 Facebook AI Manager. جميع الحقوق محفوظة.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/language-switcher.js"></script>
+    <script>
+        // Load saved language preference immediately
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('preferredLanguage') || 'ar';
+            if (savedLang === 'ar') {
+                document.documentElement.dir = 'rtl';
+                document.documentElement.lang = 'ar';
+            } else {
+                document.documentElement.dir = 'ltr';
+                document.documentElement.lang = savedLang;
+            }
+        });
+        
+        // Password strength checker
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthDiv = document.getElementById('password-strength');
+            
+            if (password.length === 0) {
+                strengthDiv.textContent = '';
+                return;
+            }
+            
+            let strength = 0;
+            let strengthText = '';
+            
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            if (strength < 3) {
+                strengthText = 'كلمة مرور ضعيفة';
+                strengthDiv.className = 'password-strength strength-weak';
+            } else if (strength < 5) {
+                strengthText = 'كلمة مرور متوسطة';
+                strengthDiv.className = 'password-strength strength-medium';
+            } else {
+                strengthText = 'كلمة مرور قوية';
+                strengthDiv.className = 'password-strength strength-strong';
+            }
+            
+            strengthDiv.textContent = strengthText;
+        });
+
+        // Form submission
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value;
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            const registerText = document.getElementById('register-text');
+            const loading = document.getElementById('loading');
+            
+            // إخفاء الرسائل السابقة
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            // التحقق من صحة البيانات
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'كلمات المرور غير متطابقة';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            if (password.length < 6) {
+                errorMessage.textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // إظهار حالة التحميل
+            registerText.style.display = 'none';
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch('/.netlify/functions/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fullName,
+                        username,
+                        email,
+                        password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // حفظ بيانات المستخدم في localStorage
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('token', data.token);
+                    
+                    // إظهار رسالة النجاح
+                    successMessage.textContent = 'تم إنشاء الحساب بنجاح! جاري التوجيه...';
+                    successMessage.style.display = 'block';
+                    
+                    // التوجيه إلى لوحة التحكم بعد ثانيتين
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                } else {
+                    errorMessage.textContent = data.error || 'خطأ في إنشاء الحساب. يرجى المحاولة مرة أخرى.';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Register error:', error);
+                errorMessage.textContent = 'حدث خطأ في الاتصال. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
+                errorMessage.style.display = 'block';
+            } finally {
+                // إخفاء حالة التحميل
+                registerText.style.display = 'block';
+                loading.style.display = 'none';
+            }
+        });
+        
+        // إضافة تأثيرات بصرية للحقول
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+    </script>
+</body>
+</html>

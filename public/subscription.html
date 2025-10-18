@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="subscriptionPageTitle">خطط الاشتراك - Facebook AI Manager</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .subscription-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        
+        .subscription-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .subscription-title {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .subscription-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+        
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .pricing-card {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px var(--shadow-color);
+        }
+        
+        .pricing-card.featured {
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+        
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+        
+        .pricing-card.featured::before {
+            content: "الأكثر شعبية";
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+        
+        .price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .price span {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .pricing-card ul {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+        
+        .pricing-card li {
+            padding: 0.75rem 0;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .pricing-card li:last-child {
+            border-bottom: none;
+        }
+        
+        .pricing-card li i {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+        }
+        
+        .pricing-button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .pricing-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(24, 119, 242, 0.3);
+        }
+        
+        .pricing-button.secondary {
+            background: var(--gradient-secondary);
+        }
+        
+        .pricing-button.secondary:hover {
+            box-shadow: 0 8px 25px rgba(0, 184, 148, 0.3);
+        }
+        
+        .features-comparison {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            margin-bottom: 3rem;
+        }
+        
+        .comparison-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .comparison-table th {
+            background: rgba(24, 119, 242, 0.1);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .comparison-table td {
+            color: var(--text-secondary);
+        }
+        
+        .comparison-table .feature-name {
+            text-align: right;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .check-icon {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+        }
+        
+        .cross-icon {
+            color: #ff7675;
+            font-size: 1.2rem;
+        }
+        
+        .faq-section {
+            margin-top: 3rem;
+        }
+        
+        .faq-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .faq-item {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .faq-question {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .faq-answer {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .pricing-card.featured {
+                transform: none;
+            }
+            
+            .pricing-card.featured:hover {
+                transform: translateY(-5px);
+            }
+            
+            .comparison-table {
+                font-size: 0.9rem;
+            }
+            
+            .comparison-table th,
+            .comparison-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <i class="fab fa-facebook"></i>
+                <span data-translate="logoText">Facebook AI Manager</span>
+            </div>
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link" data-translate="home">الرئيسية</a>
+                <a href="dashboard.html" class="nav-link" data-translate="dashboard">لوحة التحكم</a>
+                <a href="login.html" class="nav-link" data-translate="login">تسجيل الدخول</a>
+            </nav>
+            <div class="language-selector">
+                <div class="selected-language">
+                    <img src="flags/ar.svg" alt="العربية" class="flag-icon">
+                    <span data-translate="selectedLanguage">العربية</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="language-dropdown">
+                    <div class="language-option" data-lang="ar">
+                        <img src="flags/ar.svg" alt="العربية" class="flag-icon">
+                        <span data-translate="arabic">العربية</span>
+                    </div>
+                    <div class="language-option" data-lang="en">
+                        <img src="flags/en.svg" alt="English" class="flag-icon">
+                        <span data-translate="english">English</span>
+                    </div>
+                    <div class="language-option" data-lang="fr">
+                        <img src="flags/fr.svg" alt="French" class="flag-icon">
+                        <span data-translate="french">Français</span>
+                    </div>
+                    <div class="language-option" data-lang="de">
+                        <img src="flags/de.svg" alt="German" class="flag-icon">
+                        <span data-translate="german">Deutsch</span>
+                    </div>
+                    <div class="language-option" data-lang="es">
+                        <img src="flags/es.svg" alt="Spanish" class="flag-icon">
+                        <span data-translate="spanish">Español</span>
+                    </div>
+                    <div class="language-option" data-lang="ru">
+                        <img src="https://flagcdn.com/w20/ru.png" alt="Русский" class="flag-icon">
+                        <span data-translate="russian">Русский</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <main>
+            <div class="subscription-container">
+                <div class="subscription-header">
+                    <h1 class="subscription-title" data-translate="subscriptionTitle">خطط الاشتراك</h1>
+                    <p class="subscription-subtitle" data-translate="subscriptionSubtitle">اختر الخطة التي تناسب احتياجاتك</p>
+                </div>
+                
+                <div class="pricing-cards">
+                    <div class="pricing-card">
+                        <h3 data-translate="freePlan">مجاني</h3>
+                        <div class="price">0$</div>
+                        <ul>
+                            <li><i class="fas fa-check"></i> <span data-translate="freeFeature1">منشورين يومياً</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="freeFeature2">أدوات أساسية للذكاء الاصطناعي</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="freeFeature3">إدارة صفحة واحدة</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="freeFeature4">دعم مجتمعي</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="freeFeature5">قوالب أساسية</span></li>
+                        </ul>
+                        <a href="register.html" class="pricing-button secondary" data-translate="startFreeButton">ابدأ مجاناً</a>
+                    </div>
+                    
+                    <div class="pricing-card featured">
+                        <h3 data-translate="premiumPlan">مميز</h3>
+                        <div class="price">29$<span>/شهر</span></div>
+                        <ul>
+                            <li><i class="fas fa-check"></i> <span data-translate="premiumFeature1">منشورات غير محدودة</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="premiumFeature2">جميع أدوات الذكاء الاصطناعي</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="premiumFeature3">إدارة صفحات متعددة</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="premiumFeature4">تحليلات متقدمة</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="premiumFeature5">دعم أولوية</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="premiumFeature6">قوالب مخصصة</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="premiumFeature7">جدولة متقدمة</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="premiumFeature8">إنشاء صور بالذكاء الاصطناعي</span></li>
+                        </ul>
+                        <a href="payment.html" class="pricing-button" data-translate="subscribeButton">اشترك الآن</a>
+                    </div>
+                    
+                    <div class="pricing-card">
+                        <h3 data-translate="businessPlan">أعمال</h3>
+                        <div class="price">99$<span>/شهر</span></div>
+                        <ul>
+                            <li><i class="fas fa-check"></i> <span data-translate="businessFeature1">كل شيء في الخطة المميزة</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="businessFeature2">إدارة فرق متعددة</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="businessFeature3">تحليلات متقدمة جداً</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="businessFeature4">دعم مخصص 24/7</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="businessFeature5">تكامل مع أدوات أخرى</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="businessFeature6">تقارير مفصلة</span></li>
+                            <li><i class="fas fa-check"></i> <span data-translate="businessFeature7">إدارة الحملات الإعلانية</span></li>
+                        </ul>
+                        <a href="payment.html" class="pricing-button secondary" data-translate="contactUsButton">اتصل بنا</a>
+                    </div>
+                </div>
+                
+                <div class="features-comparison">
+                    <h2 class="comparison-title" data-translate="comparisonTitle">مقارنة المميزات</h2>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th data-translate="feature">المميزة</th>
+                                <th data-translate="freePlan">مجاني</th>
+                                <th data-translate="premiumPlan">مميز</th>
+                                <th data-translate="businessPlan">أعمال</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="feature-name" data-translate="dailyPosts">عدد المنشورات اليومية</td>
+                                <td>2</td>
+                                <td data-translate="unlimited">غير محدود</td>
+                                <td data-translate="unlimited">غير محدود</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name" data-translate="facebookPages">صفحات الفيس بوك</td>
+                                <td>1</td>
+                                <td>5</td>
+                                <td data-translate="unlimited">غير محدود</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name" data-translate="aiTools">أدوات الذكاء الاصطناعي</td>
+                                <td><i class="fas fa-check check-icon"></i></td>
+                                <td><i class="fas fa-check check-icon"></i></td>
+                                <td><i class="fas fa-check check-icon"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name" data-translate="aiImageGeneration">إنشاء صور بالذكاء الاصطناعي</td>
+                                <td><i class="fas fa-times cross-icon"></i></td>
+                                <td><i class="fas fa-check check-icon"></i></td>
+                                <td><i class="fas fa-check check-icon"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name" data-translate="advancedAnalytics">التحليلات المتقدمة</td>
+                                <td><i class="fas fa-times cross-icon"></i></td>
+                                <td><i class="fas fa-check check-icon"></i></td>
+                                <td><i class="fas fa-check check-icon"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name" data-translate="support">الدعم الفني</td>
+                                <td data-translate="communitySupport">مجتمعي</td>
+                                <td data-translate="prioritySupport">أولوية</td>
+                                <td data-translate="dedicatedSupport">مخصص 24/7</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name" data-translate="teamManagement">إدارة الفرق</td>
+                                <td><i class="fas fa-times cross-icon"></i></td>
+                                <td><i class="fas fa-times cross-icon"></i></td>
+                                <td><i class="fas fa-check check-icon"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="faq-section">
+                    <h2 class="faq-title" data-translate="faqTitle">الأسئلة الشائعة</h2>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question" data-translate="faq1Question">هل يمكنني تغيير خطتي في أي وقت؟</div>
+                        <div class="faq-answer" data-translate="faq1Answer">نعم، يمكنك ترقية أو تخفيض خطتك في أي وقت. التغييرات ستطبق في بداية دورة الفوترة التالية.</div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question" data-translate="faq2Question">هل هناك فترة تجريبية مجانية؟</div>
+                        <div class="faq-answer" data-translate="faq2Answer">نعم، نقدم فترة تجريبية مجانية لمدة 14 يوم للخطة المميزة. يمكنك إلغاء الاشتراك في أي وقت خلال هذه الفترة.</div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question" data-translate="faq3Question">ما هي طرق الدفع المتاحة؟</div>
+                        <div class="faq-answer" data-translate="faq3Answer">نقبل جميع البطاقات الائتمانية الرئيسية، PayPal، والتحويل البنكي. جميع المعاملات آمنة ومشفرة.</div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question" data-translate="faq4Question">هل يمكنني إلغاء الاشتراك في أي وقت؟</div>
+                        <div class="faq-answer" data-translate="faq4Answer">نعم، يمكنك إلغاء الاشتراك في أي وقت من لوحة التحكم. لن يتم خصم أي رسوم إضافية منك.</div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question" data-translate="faq5Question">هل البيانات محمية وآمنة؟</div>
+                        <div class="faq-answer" data-translate="faq5Answer">نعم، نستخدم أحدث تقنيات التشفير لحماية بياناتك. جميع البيانات محمية وفقاً لمعايير الأمان العالمية.</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="index.html" data-translate="home">الرئيسية</a>
+                    <a href="dashboard.html" data-translate="dashboard">لوحة التحكم</a>
+                    <a href="subscription.html" data-translate="subscription">الاشتراك</a>
+                    <a href="payment.html" data-translate="payment">الدفع</a>
+                </div>
+                <p data-translate="copyright">&copy; 2025 Facebook AI Manager. جميع الحقوق محفوظة.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/language-switcher.js"></script>
+</body>
+</html>

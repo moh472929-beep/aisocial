@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="autoResponseDashboardTitle">الرد التلقائي - Facebook AI Manager</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            min-height: 100vh;
+            background: var(--background-color);
+        }
+        
+        .sidebar {
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 2rem 1rem;
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar-header .logo {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .user-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .menu-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .menu-item a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .menu-item a:hover,
+        .menu-item a.active {
+            background: rgba(24, 119, 242, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-title {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+        
+        .content-section {
+            background: rgba(26, 26, 26, 0.8);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .rules-container {
+            margin-top: 2rem;
+        }
+        
+        .rule-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .rule-item .delete-rule {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .responses-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .responses-table th,
+        .responses-table td {
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .responses-table th {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .responses-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .success-message {
+            background: rgba(0, 184, 148, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            color: #00b894;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fab fa-facebook"></i>
+                    Facebook AI Manager
+                </div>
+                <div class="user-info" id="user-info">
+                    جاري التحميل...
+                </div>
+            </div>
+            
+            <nav>
+                <ul class="menu">
+                    <li class="menu-item">
+                        <a href="ai-dashboard.html#dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span data-translate="dashboardMenuItem">لوحة التحكم</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="ai-dashboard.html#ai-tools">
+                            <i class="fas fa-robot"></i>
+                            <span data-translate="aiToolsMenuItem">أدوات الذكاء الاصطناعي</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="ai-dashboard.html#facebook-pages">
+                            <i class="fab fa-facebook"></i>
+                            <span data-translate="facebookPagesMenuItem">صفحات الفيسبوك</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="analytics-dashboard.html">
+                            <i class="fas fa-chart-line"></i>
+                            <span data-translate="analyticsMenuItem">التحليلات</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#auto-response" class="active">
+                            <i class="fas fa-reply"></i>
+                            <span data-translate="autoResponseMenuItem">الرد التلقائي</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="ai-dashboard.html#settings">
+                            <i class="fas fa-cog"></i>
+                            <span data-translate="settingsMenuItem">الإعدادات</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span data-translate="logoutMenuItem">تسجيل الخروج</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title" data-translate="autoResponseTitle">الرد التلقائي</h1>
+            </div>
+            
+            <!-- Loading indicator -->
+            <div id="loading-indicator" class="loading" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span data-translate="loadingData">جاري تحميل البيانات...</span>
+            </div>
+            
+            <!-- Error message -->
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            
+            <!-- Success message -->
+            <div id="success-message" class="success-message" style="display: none;"></div>
+            
+            <!-- Auto-Response Settings -->
+            <div class="content-section">
+                <h2 class="section-title" data-translate="autoResponseSettings">إعدادات الرد التلقائي</h2>
+                
+                <div class="form-group">
+                    <label for="auto-response-toggle" data-translate="enableAutoResponse">تفعيل الرد التلقائي:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-response-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <button id="save-settings" class="btn btn-primary" data-translate="saveSettings">
+                        <i class="fas fa-save"></i> حفظ الإعدادات
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Rule Management -->
+            <div class="content-section">
+                <h2 class="section-title" data-translate="manageRules">إدارة القواعد</h2>
+                
+                <div class="form-group">
+                    <label for="keywords" data-translate="keywords">الكلمات المفتاحية (مفصولة بفواصل):</label>
+                    <input type="text" id="keywords" class="form-control" placeholder="سعر, كم, معلومات">
+                </div>
+                
+                <div class="form-group">
+                    <label for="response-text" data-translate="responseText">نص الرد:</label>
+                    <textarea id="response-text" class="form-control" rows="3" placeholder="شكراً لاهتمامك! يرجى التحقق من صندوق البريد الخاص بك للمزيد من التفاصيل."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <button id="add-rule" class="btn btn-primary" data-translate="addRule">
+                        <i class="fas fa-plus"></i> إضافة قاعدة
+                    </button>
+                </div>
+                
+                <div class="rules-container" id="rules-container">
+                    <div class="loading" data-translate="noRules">لا توجد قواعد محددة</div>
+                </div>
+            </div>
+            
+            <!-- Recent Auto-Replies -->
+            <div class="content-section">
+                <h2 class="section-title" data-translate="recentAutoReplies">الردود التلقائية الأخيرة</h2>
+                
+                <table class="responses-table">
+                    <thead>
+                        <tr>
+                            <th data-translate="comment">التعليق</th>
+                            <th data-translate="keywordTriggered">الكلمة المفتاحية</th>
+                            <th data-translate="aiResponse">رد الذكاء الاصطناعي</th>
+                            <th data-translate="timestamp">الوقت</th>
+                        </tr>
+                    </thead>
+                    <tbody id="responses-table-body">
+                        <tr>
+                            <td colspan="4" class="loading" data-translate="noResponses">لا توجد ردود تلقائية</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/language-switcher.js"></script>
+    <script>
+        // Dashboard functionality
+        let currentUser = null;
+        let autoResponseSettings = {
+            rules: [],
+            enabled: false
+        };
+        
+        // Load user data
+        async function loadUserData() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/.netlify/functions/api/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUser = data.user;
+                    updateUserInfo();
+                    loadAutoResponseSettings();
+                    loadRecentResponses();
+                } else {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // Update user info display
+        function updateUserInfo() {
+            const userInfoElement = document.getElementById('user-info');
+            if (currentUser) {
+                userInfoElement.innerHTML = `
+                    <strong>${currentUser.fullName}</strong><br>
+                    <small>${currentUser.subscription === 'free' ? 'مجاني' : 'مميز'}</small><br>
+                    <small>منشورات متبقية: ${currentUser.postsRemaining || 0}</small>
+                `;
+            }
+        }
+        
+        // Load auto-response settings
+        async function loadAutoResponseSettings() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/.netlify/functions/api/autoresponse/settings', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    autoResponseSettings = data.settings;
+                    document.getElementById('auto-response-toggle').checked = autoResponseSettings.enabled;
+                    updateRulesDisplay();
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                console.error('Error loading auto-response settings:', error);
+                showError('حدث خطأ في تحميل الإعدادات');
+            }
+        }
+        
+        // Save auto-response settings
+        async function saveAutoResponseSettings() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch('/.netlify/functions/api/autoresponse/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        rules: autoResponseSettings.rules,
+                        enabled: document.getElementById('auto-response-toggle').checked
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    autoResponseSettings = data.settings;
+                    showSuccess(data.message);
+                    updateRulesDisplay();
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                console.error('Error saving auto-response settings:', error);
+                showError('حدث خطأ في حفظ الإعدادات');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Add new rule
+        function addRule() {
+            const keywordsInput = document.getElementById('keywords');
+            const responseTextInput = document.getElementById('response-text');
+            
+            const keywords = keywordsInput.value.split(',').map(k => k.trim()).filter(k => k);
+            const responseText = responseTextInput.value.trim();
+            
+            if (keywords.length === 0 || responseText === '') {
+                showError('يرجى إدخال الكلمات المفتاحية ونص الرد');
+                return;
+            }
+            
+            autoResponseSettings.rules.push({
+                keywords: keywords,
+                response: responseText
+            });
+            
+            keywordsInput.value = '';
+            responseTextInput.value = '';
+            
+            updateRulesDisplay();
+        }
+        
+        // Delete rule
+        function deleteRule(index) {
+            autoResponseSettings.rules.splice(index, 1);
+            updateRulesDisplay();
+        }
+        
+        // Update rules display
+        function updateRulesDisplay() {
+            const container = document.getElementById('rules-container');
+            
+            if (autoResponseSettings.rules.length === 0) {
+                container.innerHTML = '<div class="loading" data-translate="noRules">لا توجد قواعد محددة</div>';
+                return;
+            }
+            
+            container.innerHTML = autoResponseSettings.rules.map((rule, index) => `
+                <div class="rule-item">
+                    <button class="delete-rule" onclick="deleteRule(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div><strong data-translate="keywords">الكلمات المفتاحية:</strong> ${rule.keywords.join(', ')}</div>
+                    <div><strong data-translate="responseText">نص الرد:</strong> ${rule.response}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Load recent responses
+        async function loadRecentResponses() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/.netlify/functions/api/autoresponse/recent', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateResponsesTable(data.responses);
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                console.error('Error loading recent responses:', error);
+                showError('حدث خطأ في تحميل الردود الأخيرة');
+            }
+        }
+        
+        // Update responses table
+        function updateResponsesTable(responses) {
+            const tbody = document.getElementById('responses-table-body');
+            
+            if (responses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="loading" data-translate="noResponses">لا توجد ردود تلقائية</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = responses.map(response => `
+                <tr>
+                    <td>${response.original_comment || 'N/A'}</td>
+                    <td>${response.keyword_triggered || 'N/A'}</td>
+                    <td>${response.ai_response || 'N/A'}</td>
+                    <td>${new Date(response.timestamp).toLocaleString('ar-EG')}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const successElement = document.getElementById('success-message');
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Show loading indicator
+        function showLoading() {
+            document.getElementById('loading-indicator').style.display = 'block';
+        }
+        
+        // Hide loading indicator
+        function hideLoading() {
+            document.getElementById('loading-indicator').style.display = 'none';
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            
+            // Save settings button
+            document.getElementById('save-settings').addEventListener('click', saveAutoResponseSettings);
+            
+            // Add rule button
+            document.getElementById('add-rule').addEventListener('click', addRule);
+        });
+        
+        // Make functions available globally for inline event handlers
+        window.deleteRule = deleteRule;
+    </script>
+</body>
+</html>

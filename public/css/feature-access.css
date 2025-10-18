@@ -1,0 +1,35 @@
+/* Shared feature access styles for free vs paid */
+.disabled-feature {
+  position: relative;
+  opacity: 0.65;
+  filter: grayscale(0.2);
+  cursor: not-allowed;
+}
+
+.disabled-feature .lock-badge {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px; /* supports RTL/LTR */
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.upgrade-notice {
+  position: fixed;
+  bottom: 20px;
+  inset-inline-end: 20px; /* RTL/LTR aware */
+  background: rgba(26, 26, 26, 0.95);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  z-index: 2000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.upgrade-notice i {
+  color: var(--primary-color);
+}
