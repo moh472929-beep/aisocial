@@ -25,8 +25,9 @@ const validateSignup = [
     .withMessage('Username is required')
     .isLength({ min: 3 })
     .withMessage('Username must be at least 3 characters')
-    .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('Username can only contain letters, numbers, and underscores'),
+    .matches(/^[a-zA-Z0-9._]+$/)
+    .withMessage('Username can only contain letters, numbers, underscores, and dots')
+    .customSanitizer(v => (typeof v === 'string' ? v.toLowerCase() : v)),
   body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   validate,

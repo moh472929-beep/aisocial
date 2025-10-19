@@ -6,6 +6,7 @@ const dbInit = require('../db/init');
 const { validateSignup, validateLogin } = require('../middleware/validation');
 const { logger } = require('../middleware/errorHandler');
 const { generateToken } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 const ApiResponse = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
 const { SUCCESS_MESSAGES, ERROR_MESSAGES } = require('../utils/constants');
@@ -160,6 +161,40 @@ router.post('/login', validateLogin, async (req, res, next) => {
   }
 });
 
+// Change password for authenticated user
+router.post('/change-password', authenticateToken, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return ApiResponse.badRequest(res, null, 'Current and new password are required');
+    }
+    const userModel = dbInit.getModel('User');
+    const user = await userModel.findById(req.user.userId);
+    if (!user) {
+      return ApiResponse.notFound(res, null, 'User not found');
+    }
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash || user.password);
+    if (!isValid) {
+      return ApiResponse.unauthorized(res, null, 'Current password is incorrect');
+    }
+    const newHash = await bcrypt.hash(newPassword, 10);
+    // Support both persistent and in-memory models
+    if (typeof userModel.update === 'function') {
+      const updated = await userModel.update(user.id, { passwordHash: newHash });
+      if (!updated) {
+        return ApiResponse.internalError(res, null, 'Failed to update password');
+      }
+    } else {
+      // Fallback for memory model without update
+      user.passwordHash = newHash;
+    }
+    return ApiResponse.success(res, { changed: true }, 'Password changed successfully');
+  } catch (error) {
+    logger.error('Change password error:', error);
+    next(error);
+  }
+});
+
 // Register alias handled by unified route above
 
 // Email verification endpoint
@@ -223,7 +258,7 @@ router.post('/logout', async (req, res, next) => {
 });
 
 // Get user profile
-const { authenticateToken } = require('../middleware/auth');
+// const { authenticateToken } = require('../middleware/auth'); // moved to top
 
 router.get('/profile', authenticateToken, async (req, res, next) => {
   try {

@@ -56,7 +56,15 @@ function apiPathURL(relPath) {
 }
 
 import(apiPathURL("src/api/index.mjs"))
-  .then(({ default: apiRoutes }) => app.use("/api", apiRoutes))
+  .then(({ default: apiRoutes }) => {
+    app.use("/api", apiRoutes);
+    // 404 handler for API routes must come AFTER apiRoutes
+    app.use('/api', notFoundHandler);
+    // Move catch-all after API routes to avoid intercepting /api
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(__dirname, "../public", "index.html"));
+    });
+  })
   .catch((err) => logger.error("❌ Failed to load API routes:", err));
 
 // Log DB readiness
@@ -68,15 +76,10 @@ dbReady
 
 app.use(express.static(path.join(__dirname, "../public")));
 
-// 404 handler for API routes
-app.use('/api', notFoundHandler);
-
 // Error handling middleware
 app.use(errorHandler);
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public", "index.html"));
-});
+// catch-all moved after apiRoutes to prevent intercepting /api
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
