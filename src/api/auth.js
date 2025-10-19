@@ -95,18 +95,30 @@ router.post(['/signup', '/register'], validateSignup, async (req, res, next) => 
   }
 });
 
-// Login endpoint with validation
+// Login endpoint with validation (email or username or unified identifier)
 router.post('/login', validateLogin, async (req, res, next) => {
   try {
     // apply brute-force protection
     await loginLimiter.consume(req.ip);
-    const { email, password } = req.body;
+    const { email, username, identifier, password } = req.body;
 
     // Get user model
     const userModel = dbInit.getModel('User');
 
-    // Find user
-    const user = await userModel.findByEmail(email);
+    // Determine lookup strategy
+    let user = null;
+    if (email) {
+      user = await userModel.findByEmail(email);
+    } else if (username && typeof userModel.findByUsername === 'function') {
+      user = await userModel.findByUsername(username);
+    } else if (identifier) {
+      if (identifier.includes('@')) {
+        user = await userModel.findByEmail(identifier);
+      } else if (typeof userModel.findByUsername === 'function') {
+        user = await userModel.findByUsername(identifier.toLowerCase());
+      }
+    }
+
     if (!user) {
       throw ApiError.unauthorized(
         ERROR_MESSAGES.INVALID_CREDENTIALS.en,

@@ -1,4 +1,4 @@
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, oneOf } = require('express-validator');
 
 // Validation middleware
 const validate = (req, res, next) => {
@@ -33,9 +33,13 @@ const validateSignup = [
   validate,
 ];
 
-// Login validation
+// Login validation: accept email OR username OR identifier
 const validateLogin = [
-  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+  oneOf([
+    body('email').isEmail().normalizeEmail(),
+    body('username').isLength({ min: 3 }).matches(/^[a-zA-Z0-9._]+$/),
+    body('identifier').isLength({ min: 3 }),
+  ], 'Valid email or username is required'),
   body('password').notEmpty().withMessage('Password is required'),
   validate,
 ];

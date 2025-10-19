@@ -16,6 +16,14 @@ class UserMemory {
     return null;
   }
 
+  async findByUsername(username) {
+    const target = typeof username === 'string' ? username.toLowerCase() : username;
+    for (const user of this.users.values()) {
+      if ((user.username || '').toLowerCase() === target) return user;
+    }
+    return null;
+  }
+
   async findById(id) {
     return this.users.get(id) || null;
   }

@@ -181,7 +181,7 @@
                         <span data-translate="spanish">Español</span>
                     </div>
                     <div class="language-option" data-lang="ru">
-                        <img src="https://flagcdn.com/w20/ru.png" alt="Русский" class="flag-icon">
+                        <img src="flags/ru.svg" alt="Русский" class="flag-icon">
                         <span data-translate="russian">Русский</span>
                     </div>
                 </div>
@@ -360,6 +360,9 @@
                      loading.style.display = 'block';
  
                      try {
+                         // إضافة تأخير قصير لضمان استجابة الخادم
+                         await new Promise(resolve => setTimeout(resolve, 100));
+                         
                          const response = await fetch('/api/auth/register', {
                              method: 'POST',
                              headers: {
@@ -370,7 +373,10 @@
                                  username,
                                  email,
                                  password
-                             })
+                             }),
+                             // إضافة خيارات لمنع التخزين المؤقت
+                             cache: 'no-cache',
+                             credentials: 'same-origin'
                          });
  
                          const data = await response.json();
