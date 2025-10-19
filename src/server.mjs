@@ -29,26 +29,39 @@ app.use((req, res, next) => {
   }
   next();
 });
-// Remove eager API mount; mount after DB init
-// import(apiPathURL("src/api/index.mjs"))
-//   .then(({ default: apiRoutes }) => app.use("/api", apiRoutes))
-//   .catch((err) => logger.error("❌ Failed to load API routes:", err));
 
+// Initialize DB once and create a readiness promise
+const dbReady = dbInit.initDB();
+
+// Guard /api requests until DB and models are ready
+app.use('/api', async (req, res, next) => {
+  try {
+    await dbReady;
+    return next();
+  } catch (err) {
+    logger.error("❌ DB init failed; responding 503", err);
+    return res.status(503).json({
+      success: false,
+      message: 'Service Unavailable',
+      error: 'Database initialization failed',
+    });
+  }
+});
+
+// Mount API routes eagerly; guarded by the middleware above
 function apiPathURL(relPath) {
   const fullPath = path.join(process.cwd(), relPath);
   return pathToFileURL(fullPath).href;
 }
 
-dbInit.initDB()
-  .then(async () => {
+import(apiPathURL("src/api/index.mjs"))
+  .then(({ default: apiRoutes }) => app.use("/api", apiRoutes))
+  .catch((err) => logger.error("❌ Failed to load API routes:", err));
+
+// Log DB readiness
+dbReady
+  .then(() => {
     logger.info("✅ DB initialized and ready");
-    try {
-      const { default: apiRoutes } = await import(apiPathURL("src/api/index.mjs"));
-      app.use("/api", apiRoutes);
-      logger.info("✅ API routes mounted");
-    } catch (err) {
-      logger.error("❌ Failed to load API routes:", err);
-    }
   })
   .catch((err) => logger.error("❌ DB init failed:", err));
 

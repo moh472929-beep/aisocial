@@ -362,7 +362,10 @@
                 if (response.ok && data.success) {
                     // حفظ بيانات المستخدم في localStorage
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('token', data.accessToken || data.token);
+                    if (data.refreshToken) {
+                        localStorage.setItem('refreshToken', data.refreshToken);
+                    }
                     
                     // إظهار رسالة النجاح
                     successMessage.textContent = 'تم إنشاء الحساب بنجاح! جاري التوجيه...';

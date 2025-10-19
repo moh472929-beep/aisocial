@@ -14,9 +14,24 @@ function instantiate(module) {
   return typeof exported === "function" ? new exported() : exported;
 }
 
-async function initializeModels() {
+async function initializeModels(opts = {}) {
   try {
-    const User = instantiate(loadModel("User.js"));
+    const useMemory = !!opts.useMemory;
+
+    // Always initialize User model; fallback to in-memory when requested
+    const User = instantiate(loadModel(useMemory ? "memory/UserMemory.js" : "User.js"));
+
+    // When using memory, only register User to avoid DB-dependent initializations
+    if (useMemory) {
+      modelsRegistry = { User };
+      if (typeof User?.initialize === "function") {
+        await User.initialize();
+      }
+      logger.info("✅ User model initialized (in-memory)");
+      return;
+    }
+
+    // Real DB-backed models
     const FacebookPage = instantiate(loadModel("FacebookPage.js"));
     const Post = instantiate(loadModel("Post.js"));
     const Analytics = instantiate(loadModel("Analytics.js"));

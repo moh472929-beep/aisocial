@@ -10,7 +10,14 @@ async function initDB() {
     logger.info("✅ Database initialized successfully");
   } catch (error) {
     logger.error("❌ Failed to initialize database:", error);
-    throw error;
+    logger.warn("⚠️ Falling back to in-memory models (development mode). Data will not persist.");
+    try {
+      await initializeModels({ useMemory: true });
+      logger.info("✅ In-memory models initialized successfully");
+    } catch (memErr) {
+      logger.error("❌ Failed to initialize in-memory models:", memErr);
+      throw memErr;
+    }
   }
 }
 
