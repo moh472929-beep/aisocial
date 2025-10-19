@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
-import { logger } from "../utils/logger.mjs";
+const mongoose = require("mongoose");
+const { logger } = require("../middleware/errorHandler");
 
 let db = null;
 
-export async function connectDB() {
+async function connectDB() {
   try {
     const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
     if (!mongoUri) {
@@ -23,7 +23,9 @@ export async function connectDB() {
   }
 }
 
-export function getDb() {
+function getDb() {
   if (!db) throw new Error("Database not initialized. Call connectDB() first.");
   return db;
 }
+
+module.exports = { connectDB, getDb };
