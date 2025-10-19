@@ -5,12 +5,13 @@ let db = null;
 
 export async function connectDB() {
   try {
-    if (!process.env.MONGO_URI) {
-      throw new Error("MONGO_URI not found in environment variables");
+    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+    if (!mongoUri) {
+      throw new Error("MongoDB URI not configured. Set MONGODB_URI or MONGO_URI");
     }
 
     logger.info("⏳ Connecting to MongoDB...");
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+    const conn = await mongoose.connect(mongoUri);
 
     db = conn.connection.db;
     logger.info("✅ MongoDB connected successfully");

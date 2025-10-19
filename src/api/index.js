@@ -1,6 +1,8 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -55,6 +57,3 @@ async function initializeRoutes() {
 await initializeRoutes();
 
 export default router;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
