@@ -1,10 +1,10 @@
-import { connectDB } from "./connection.js";
-import { initializeModels } from "./models.js";
-import { logger } from "../utils/logger.js";
+const { logger } = require("../middleware/errorHandler");
+const { initializeModels, getModel } = require("./models.js");
 
-export async function initDB() {
+async function initDB() {
   try {
     logger.info("🚀 Initializing database...");
+    const { connectDB } = await import("./connection.js");
     await connectDB();
     await initializeModels();
     logger.info("✅ Database initialized successfully");
@@ -14,4 +14,4 @@ export async function initDB() {
   }
 }
 
-export { getModel } from "./models.js";
+module.exports = { initDB, getModel };

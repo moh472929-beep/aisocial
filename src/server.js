@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import dotenv from "dotenv";
 
-import { initDB } from "./db/init.js";
+import dbInit from "./db/init.js";
 import { logger } from "./utils/logger.js";
 
 dotenv.config();
@@ -33,7 +33,7 @@ function apiPathURL(relPath) {
 }
 
 // ✅ قاعدة البيانات
-initDB()
+dbInit.initDB()
   .then(() => logger.info("✅ DB initialized and ready"))
   .catch((err) => logger.error("❌ DB init failed:", err));
 

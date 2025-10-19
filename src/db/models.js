@@ -1,18 +1,12 @@
-import { logger } from "../utils/logger.js";
-import path from "path";
-import { fileURLToPath, pathToFileURL } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const path = require("path");
+const { logger } = require("../middleware/errorHandler");
 
 let modelsRegistry = {};
 
-// دالة لتحميل المودلز من المسار الصحيح داينمكياً
-async function loadModel(relativePath) {
+function loadModel(relativePath) {
   const fullPath = path.join(__dirname, "../models", relativePath);
-  const moduleURL = pathToFileURL(fullPath).href;
-  const module = await import(moduleURL);
-  return module.default || module;
+  const module = require(fullPath);
+  return module?.default ?? module;
 }
 
 function instantiate(module) {
@@ -20,17 +14,16 @@ function instantiate(module) {
   return typeof exported === "function" ? new exported() : exported;
 }
 
-export async function initializeModels() {
+async function initializeModels() {
   try {
-    // تهيئة جميع المودلز المتوفرة فعلياً في src/models
-    const User = instantiate(await loadModel("User.js"));
-    const FacebookPage = instantiate(await loadModel("FacebookPage.js"));
-    const Post = instantiate(await loadModel("Post.js"));
-    const Analytics = instantiate(await loadModel("Analytics.js"));
-    const AutoResponse = instantiate(await loadModel("AutoResponse.js"));
-    const UserData = instantiate(await loadModel("UserData.js"));
-    const TrendingTopic = instantiate(await loadModel("TrendingTopic.js"));
-    const CompetitorAnalytics = instantiate(await loadModel("CompetitorAnalytics.js"));
+    const User = instantiate(loadModel("User.js"));
+    const FacebookPage = instantiate(loadModel("FacebookPage.js"));
+    const Post = instantiate(loadModel("Post.js"));
+    const Analytics = instantiate(loadModel("Analytics.js"));
+    const AutoResponse = instantiate(loadModel("AutoResponse.js"));
+    const UserData = instantiate(loadModel("UserData.js"));
+    const TrendingTopic = instantiate(loadModel("TrendingTopic.js"));
+    const CompetitorAnalytics = instantiate(loadModel("CompetitorAnalytics.js"));
 
     modelsRegistry = {
       User,
@@ -43,7 +36,6 @@ export async function initializeModels() {
       CompetitorAnalytics,
     };
 
-    // استدعاء initialize لكل مودل إن وجد
     for (const key of Object.keys(modelsRegistry)) {
       const model = modelsRegistry[key];
       if (typeof model?.initialize === "function") {
@@ -58,8 +50,10 @@ export async function initializeModels() {
   }
 }
 
-export function getModel(name) {
+function getModel(name) {
   const model = modelsRegistry[name];
   if (!model) throw new Error(`Model '${name}' is not initialized`);
   return model;
 }
+
+module.exports = { initializeModels, getModel };
