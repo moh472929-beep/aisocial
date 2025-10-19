@@ -51,7 +51,8 @@ class User {
   }
 
   async findByEmail(email) {
-    const user = await this.collection.findOne({ email });
+    // Using $eq operator to prevent NoSQL injection
+    const user = await this.collection.findOne({ email: { $eq: email } });
     if (user) {
       user.id = user._id.toString();
       delete user._id;
@@ -60,7 +61,8 @@ class User {
   }
 
   async findByUsername(username) {
-    const user = await this.collection.findOne({ username });
+    // Using $eq operator to prevent NoSQL injection
+    const user = await this.collection.findOne({ username: { $eq: username } });
     if (user) {
       user.id = user._id.toString();
       delete user._id;

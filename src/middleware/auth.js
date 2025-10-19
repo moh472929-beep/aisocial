@@ -7,7 +7,7 @@ const getJWTSecret = () => {
   );
 };
 
-// Middleware to verify JWT token
+// Middleware to verify JWT token with enhanced security
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
@@ -21,7 +21,11 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, getJWTSecret());
+    const decoded = jwt.verify(token, getJWTSecret(), {
+      algorithms: ['HS256'],
+      audience: process.env.JWT_AUDIENCE || 'facebook-ai-manager',
+      issuer: process.env.JWT_ISSUER || 'facebook-ai-manager-auth'
+    });
     req.user = decoded;
     next();
   } catch (error) {
@@ -41,9 +45,15 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-// Generate JWT token
+// Generate JWT token with enhanced security
 const generateToken = (payload, expiresIn = '24h') => {
-  return jwt.sign(payload, getJWTSecret(), { expiresIn });
+  return jwt.sign(payload, getJWTSecret(), { 
+    expiresIn,
+    algorithm: 'HS256',
+    jwtid: require('crypto').randomBytes(16).toString('hex'),
+    audience: process.env.JWT_AUDIENCE || 'facebook-ai-manager',
+    issuer: process.env.JWT_ISSUER || 'facebook-ai-manager-auth'
+  });
 };
 
 // Verify JWT token

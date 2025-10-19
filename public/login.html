@@ -1,330 +1,201 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="loginPageTitle">تسجيل الدخول - Facebook AI Manager</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        .login-container {
-            max-width: 500px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: rgba(30, 30, 40, 0.9);
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-        }
-        
-        .logo {
-            text-align: center;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 2rem;
-        }
-        
-        .logo i {
-            margin-left: 0.5rem;
-            color: #1877f2;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-color);
-            font-weight: 500;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-color);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .btn {
-            width: 100%;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), #1877f2);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(24, 119, 242, 0.4);
-        }
-        
-        .error-message {
-            color: #ff7675;
-            background-color: rgba(255, 118, 117, 0.1);
-            padding: 0.75rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: none;
-            border: 1px solid rgba(255, 118, 117, 0.3);
-        }
-        
-        .success-message {
-            color: #00b894;
-            background-color: rgba(0, 184, 148, 0.1);
-            padding: 0.75rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: none;
-            border: 1px solid rgba(0, 184, 148, 0.3);
-        }
-        
-        .links {
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-        
-        .links a {
-            color: var(--primary-color);
-            text-decoration: none;
-            margin: 0 0.5rem;
-            transition: color 0.3s ease;
-        }
-        
-        .links a:hover {
-            color: #1877f2;
-            text-decoration: underline;
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
-            margin-top: 1rem;
-        }
-        
-        .loading i {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-translate="pageTitle">تسجيل الدخول - Facebook AI Manager</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Auth Section layout to align with project theme */
+    .auth-section { display:flex; justify-content:center; align-items:flex-start; padding:2rem; }
+    .auth-card {
+      width:100%; max-width:520px; background: var(--surface-color);
+      border:1px solid var(--border-color); border-radius:16px; box-shadow:0 10px 30px var(--shadow-color);
+      padding:1.5rem 1.75rem;
+    }
+    .auth-title { text-align:center; margin-bottom:1rem; font-weight:700; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .form-group { margin-bottom: 1rem; }
+    .form-control {
+      width: 100%; padding: 0.75rem; border-radius: 10px; border:1px solid var(--border-color);
+      background: rgba(255,255,255,0.06); color: var(--text-color);
+    }
+    .btn { width: 100%; padding: 0.85rem; border-radius: 12px; cursor: pointer; font-weight:600; }
+    .btn-primary { background: var(--gradient-primary); color: #fff; border: none; }
+    .message { display:none; margin-top: 0.75rem; padding: 0.75rem; border-radius: 10px; }
+    .error { background: rgba(255,118,117,0.1); color: #ff7675; }
+    .success { background: rgba(0,184,148,0.1); color: #00b894; }
+    .links { display:flex; justify-content:space-between; gap:0.5rem; margin-top:0.75rem; font-size:0.95rem; }
+    .links a { color: var(--primary-color); text-decoration:none; }
+    .links a:hover { text-decoration:underline; }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <div class="logo">
-                <i class="fab fa-facebook"></i>
-                <span data-translate="logoText">Facebook AI Manager</span>
-            </div>
-                <nav class="main-nav">
-                    <a href="index.html" class="nav-link" data-translate="home">الرئيسية</a>
-                    <a href="dashboard.html" class="nav-link" data-translate="dashboard">لوحة التحكم</a>
-                    <a href="register.html" class="nav-link" data-translate="register">إنشاء حساب</a>
-                </nav>
-            <div class="language-selector">
-                <div class="selected-language">
-                    <img src="flags/ar.svg" alt="العربية" class="flag-icon">
-                    <span data-translate="selectedLanguage">العربية</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="language-dropdown">
-                    <div class="language-option" data-lang="ar">
-                        <img src="flags/ar.svg" alt="العربية" class="flag-icon">
-                        <span data-translate="arabic">العربية</span>
-                    </div>
-                    <div class="language-option" data-lang="en">
-                        <img src="flags/en.svg" alt="English" class="flag-icon">
-                        <span data-translate="english">English</span>
-                    </div>
-                    <div class="language-option" data-lang="fr">
-                        <img src="flags/fr.svg" alt="French" class="flag-icon">
-                        <span data-translate="french">Français</span>
-                    </div>
-                    <div class="language-option" data-lang="de">
-                        <img src="flags/de.svg" alt="German" class="flag-icon">
-                        <span data-translate="german">Deutsch</span>
-                    </div>
-                    <div class="language-option" data-lang="es">
-                        <img src="flags/es.svg" alt="Spanish" class="flag-icon">
-                        <span data-translate="spanish">Español</span>
-                    </div>
-                    <div class="language-option" data-lang="ru">
-                        <img src="flags/ru.svg" alt="Русский" class="flag-icon">
-                        <span data-translate="russian">Русский</span>
-                    </div>
-                </div>
-            </div>
-        </header>
-        
-        <main>
-            <div class="login-container">
-                <div class="logo">
-                    <i class="fab fa-facebook"></i>
-                    <span data-translate="logoText">Facebook AI Manager</span>
-                </div>
-                
-                <div id="error-message" class="error-message"></div>
-                <div id="success-message" class="success-message"></div>
-                
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="username" data-translate="usernameLabel">اسم المستخدم أو البريد الإلكتروني</label>
-                        <input type="text" id="username" class="form-control" required 
-                               placeholder="أدخل اسم المستخدم أو البريد الإلكتروني" data-translate="usernamePlaceholder">
-                    </div>
-                    <div class="form-group">
-                        <label for="password" data-translate="passwordLabel">كلمة المرور</label>
-                        <input type="password" id="password" class="form-control" required 
-                               placeholder="أدخل كلمة المرور" data-translate="passwordPlaceholder">
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <span id="login-text" data-translate="loginButton">تسجيل الدخول</span>
-                        <div id="loading" class="loading">
-                            <i class="fas fa-spinner"></i> <span data-translate="loadingText">جاري تسجيل الدخول...</span>
-                        </div>
-                    </button>
-                </form>
-                
-                <div class="links">
-                    <a href="index.html" data-translate="homeLink">الرئيسية</a> | 
-                    <a href="register.html" data-translate="createAccountLink">إنشاء حساب</a> | 
-                    <a href="forgot-password.html" data-translate="forgotPasswordLink">نسيت كلمة المرور؟</a>
-                </div>
-            </div>
-        </main>
-        
-        <footer>
-            <div class="footer-content">
-                <div class="footer-links">
-                    <a href="index.html" data-translate="home">الرئيسية</a>
-                    <a href="dashboard.html" data-translate="dashboard">لوحة التحكم</a>
-                    <a href="subscription.html" data-translate="subscription">الاشتراك</a>
-                    <a href="payment.html" data-translate="payment">الدفع</a>
-                </div>
-                <p data-translate="copyright">&copy; 2025 Facebook AI Manager. جميع الحقوق محفوظة.</p>
-            </div>
-        </footer>
-    </div>
+  <div class="app-container">
+    <!-- Header copied to match project -->
+    <header>
+      <div class="logo">
+        <i class="fab fa-facebook"></i>
+        <span data-translate="logoText">Facebook AI Manager</span>
+      </div>
+      <nav class="main-nav">
+        <a href="index.html" class="nav-link" data-translate="home">الرئيسية</a>
+        <a href="dashboard.html" class="nav-link" data-translate="dashboard">لوحة التحكم</a>
+        <a href="subscription.html" class="nav-link" data-translate="subscription">الاشتراك</a>
+        <a href="login.html" class="nav-link active" data-translate="login">تسجيل الدخول</a>
+      </nav>
+      <div class="language-selector">
+        <div class="selected-language">
+          <img src="flags/ar.svg" alt="العربية" class="flag-icon">
+          <span data-translate="selectedLanguage">العربية</span>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="language-dropdown">
+          <div class="language-option" data-lang="ar">
+            <img src="flags/ar.svg" alt="العربية" class="flag-icon">
+            <span data-translate="arabic">العربية</span>
+          </div>
+          <div class="language-option" data-lang="en">
+            <img src="flags/en.svg" alt="English" class="flag-icon">
+            <span data-translate="english">English</span>
+          </div>
+          <div class="language-option" data-lang="fr">
+            <img src="flags/fr.svg" alt="French" class="flag-icon">
+            <span data-translate="french">Français</span>
+          </div>
+          <div class="language-option" data-lang="de">
+            <img src="flags/de.svg" alt="German" class="flag-icon">
+            <span data-translate="german">Deutsch</span>
+          </div>
+          <div class="language-option" data-lang="es">
+            <img src="flags/es.svg" alt="Spanish" class="flag-icon">
+            <span data-translate="spanish">Español</span>
+          </div>
+          <div class="language-option" data-lang="ru">
+            <img src="flags/ru.svg" alt="Русский" class="flag-icon">
+            <span data-translate="russian">Русский</span>
+          </div>
+        </div>
+      </div>
+    </header>
 
-    <script src="js/main.js"></script>
-    <script src="js/language-switcher.js"></script>
-    <script>
-        // Load saved language preference immediately
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedLang = localStorage.getItem('preferredLanguage') || 'ar';
-            if (savedLang === 'ar') {
-                document.documentElement.dir = 'rtl';
-                document.documentElement.lang = 'ar';
-            } else {
-                document.documentElement.dir = 'ltr';
-                document.documentElement.lang = savedLang;
-            }
-        });
-        
-        document.getElementById('login-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('error-message');
-            const successMessage = document.getElementById('success-message');
-            const loginText = document.getElementById('login-text');
-            const loading = document.getElementById('loading');
-            
-            // إخفاء الرسائل السابقة
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
-            
-            // إظهار حالة التحميل
-            loginText.style.display = 'none';
-            loading.style.display = 'block';
-            
-            try {
-                // إضافة تأخير قصير لضمان استجابة الخادم
-                await new Promise(resolve => setTimeout(resolve, 100));
-                
-                const isEmail = username.includes('@');
-                const payload = isEmail
-                    ? { email: username, password }
-                    : { username: username, password };
+    <!-- Main -->
+    <main>
+      <section class="auth-section">
+        <div class="auth-card">
+          <h2 class="auth-title" data-translate="loginButton">تسجيل الدخول</h2>
 
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                    // إضافة خيارات لمنع التخزين المؤقت
-                    cache: 'no-cache',
-                    credentials: 'same-origin'
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok && data.success) {
-                    // حفظ بيانات المستخدم في localStorage
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    localStorage.setItem('token', data.accessToken || data.token);
-                    if (data.refreshToken) {
-                        localStorage.setItem('refreshToken', data.refreshToken);
-                    }
-                    
-                    // إظهار رسالة النجاح
-                    successMessage.textContent = 'تم تسجيل الدخول بنجاح! جاري التوجيه...';
-                    successMessage.style.display = 'block';
-                    
-                    // التوجيه إلى لوحة التحكم بعد ثانيتين
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 2000);
-                } else {
-                    errorMessage.textContent = data.error || 'خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.';
-                    errorMessage.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                errorMessage.textContent = 'حدث خطأ في الاتصال. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
-                errorMessage.style.display = 'block';
-            } finally {
-                // إخفاء حالة التحميل
-                loginText.style.display = 'block';
-                loading.style.display = 'none';
-            }
+          <div id="error" class="message error"></div>
+          <div id="success" class="message success"></div>
+          <div id="loading" class="loading text-center" style="display:none"></div>
+
+          <form id="login-form">
+            <div class="form-group">
+              <label for="username">اسم المستخدم أو البريد الإلكتروني</label>
+              <input id="username" type="text" class="form-control" placeholder="اسم المستخدم أو البريد الإلكتروني" required />
+            </div>
+            <div class="form-group">
+              <label for="password">كلمة المرور</label>
+              <input id="password" type="password" class="form-control" placeholder="كلمة المرور" required />
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <span id="login-text">تسجيل الدخول</span>
+            </button>
+          </form>
+
+          <div class="links">
+            <a href="index.html" data-translate="home">الرئيسية</a>
+            <a href="register.html" data-translate="createAccount">إنشاء حساب</a>
+            <a href="#" data-translate="forgotPassword">نسيت كلمة المرور؟</a>
+          </div>
+          <p class="mt-2" style="font-size:0.9rem; opacity:0.8;">الاتصال عبر نفس الأصل باستخدام المسارات النسبية لضمان التوافق مع Render وMongoDB.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-content">
+        <div class="footer-links">
+          <a href="index.html" data-translate="home">الرئيسية</a>
+          <a href="dashboard.html" data-translate="dashboard">لوحة التحكم</a>
+          <a href="subscription.html" data-translate="subscription">الاشتراك</a>
+          <a href="payment.html" data-translate="payment">الدفع</a>
+          <a href="login.html" data-translate="login">تسجيل الدخول</a>
+        </div>
+        <p data-translate="copyright">&copy; 2025 Facebook AI Manager. جميع الحقوق محفوظة.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script src="js/language-switcher.js"></script>
+  <script>
+    // Helper UI
+    const showMsg = (id, text) => { const el = document.getElementById(id); el.textContent = text; el.style.display = 'block'; };
+    const hideMsg = (id) => { const el = document.getElementById(id); el.style.display = 'none'; el.textContent=''; };
+
+    // Focus styling
+    document.querySelectorAll('.form-control').forEach(inp => {
+      const grp = inp.closest('.form-group');
+      inp.addEventListener('focus', () => grp && grp.classList.add('focused'));
+      inp.addEventListener('blur', () => grp && grp.classList.remove('focused'));
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideMsg('error'); hideMsg('success');
+      const identifier = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (!identifier || !password) { showMsg('error', 'يرجى إدخال جميع الحقول المطلوبة'); return; }
+
+      const isEmail = identifier.includes('@');
+      const payload = isEmail ? { email: identifier, password } : { username: identifier.toLowerCase(), password };
+
+      const btn = document.querySelector('#login-form button[type=submit]');
+      const loading = document.getElementById('loading');
+
+      try {
+        btn.disabled = true;
+        loading.style.display = 'block';
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 15000);
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          cache: 'no-cache',
+          credentials: 'same-origin',
+          signal: ctrl.signal
         });
-        
-        // إضافة تأثيرات بصرية للحقول
-        document.querySelectorAll('.form-control').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.classList.add('focused');
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.classList.remove('focused');
-            });
-        });
-    </script>
+        clearTimeout(timer);
+        loading.style.display = 'none';
+        let body = {}; try { body = await res.json(); } catch {}
+        const data = body && body.data ? body.data : body;
+        if (res.ok && body.success) {
+          const user = data.user || body.user;
+          const accessToken = data.accessToken || body.accessToken || body.token || '';
+          const refreshToken = data.refreshToken || body.refreshToken || '';
+          localStorage.setItem('user', user ? JSON.stringify(user) : '');
+          localStorage.setItem('token', accessToken);
+          if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+          showMsg('success', 'تم تسجيل الدخول بنجاح! جاري التوجيه...');
+          setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+        } else {
+          if (res.status === 429) {
+            showMsg('error', 'عدد محاولات تسجيل الدخول كبير، يرجى الانتظار قليلاً');
+          } else {
+            const err = body.errorAr || body.error || 'فشل تسجيل الدخول، يرجى المحاولة لاحقاً.';
+            showMsg('error', err);
+          }
+        }
+      } catch (err) {
+        loading.style.display = 'none';
+        showMsg('error', 'حدث خطأ في الاتصال بالخادم أو انتهت مهلة الطلب.');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>

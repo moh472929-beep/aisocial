@@ -2031,8 +2031,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update title attribute
         const titleElement = document.querySelector('title');
-        if (titleElement && t.pageTitle) {
-            titleElement.textContent = t.pageTitle;
+        if (titleElement) {
+            const titleKey = titleElement.getAttribute('data-translate');
+            if (titleKey && t[titleKey]) {
+                titleElement.textContent = t[titleKey];
+            } else if (t.pageTitle) {
+                titleElement.textContent = t.pageTitle;
+            }
         }
     }
     

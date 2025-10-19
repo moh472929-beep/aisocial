@@ -13,23 +13,33 @@ const { SUCCESS_MESSAGES, ERROR_MESSAGES } = require('../utils/constants');
 
 const router = express.Router();
 
-// Brute-force protection for login using rate-limiter-flexible
+// Enhanced brute-force protection for login using rate-limiter-flexible
 const loginLimiter = new RateLimiterMemory({
-  points: 10, // 10 tries
+  points: 5, // 5 tries
   duration: 60 * 15, // per 15 minutes
+  blockDuration: 60 * 30, // Block for 30 minutes after too many attempts
+});
+
+// Enhanced signup rate limiting
+const signupLimiter = new RateLimiterMemory({ 
+  points: 3, 
+  duration: 60 * 60, // 1 hour
+  blockDuration: 60 * 60 * 24 // Block for 24 hours after too many attempts
 });
 
 // Signup endpoint with validation
 router.post(['/signup', '/register'], validateSignup, async (req, res, next) => {
   try {
+    await signupLimiter.consume(req.ip);
     const { fullName, username, email, password } = req.body;
 
     // Get user model
     const userModel = dbInit.getModel('User');
 
-    // Check if user already exists
-    const existingUser = await userModel.findByEmail(email);
-    if (existingUser) {
+    // Check if user already exists (by email or username)
+    const existingByEmail = await userModel.findByEmail(email);
+    const existingByUsername = typeof userModel.findByUsername === 'function' ? await userModel.findByUsername(username) : null;
+    if (existingByEmail || existingByUsername) {
       throw ApiError.conflict(ERROR_MESSAGES.USER_EXISTS.en, ERROR_MESSAGES.USER_EXISTS.ar);
     }
 
@@ -53,7 +63,7 @@ router.post(['/signup', '/register'], validateSignup, async (req, res, next) => 
     const user = await userModel.create(userData);
 
     // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
 
     // Generate JWT token
     const token = generateToken({ userId: user.id, email: user.email, role: user.role }, '15m');
@@ -136,7 +146,7 @@ router.post('/login', validateLogin, async (req, res, next) => {
     }
 
     // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
 
     // Generate JWT token
     const accessToken = generateToken(
@@ -240,7 +250,7 @@ router.post('/refresh', async (req, res, next) => {
     const userModel = dbInit.getModel('User');
     const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
     const user = await userModel.findById(payload.userId);
-    const hasToken = (user.refreshTokens || []).some(rt => rt.tokenHash === tokenHash);
+    const hasToken = (user.refreshTokens || []).some(rt => rt === tokenHash || rt?.tokenHash === tokenHash);
     if (!hasToken) {
       return ApiResponse.unauthorized(res, null, 'Refresh token revoked');
     }
@@ -284,7 +294,7 @@ router.get('/profile', authenticateToken, async (req, res, next) => {
     }
 
     // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
 
     ApiResponse.success(res, { user: userWithoutPassword }, 'Profile fetched successfully');
   } catch (error) {

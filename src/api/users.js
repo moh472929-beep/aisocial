@@ -19,7 +19,7 @@ router.get('/profile', async (req, res) => {
       return sendNotFound(res, 'User not found');
     }
 
-    const { password: _, ...userWithoutPassword } = user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
 
     sendSuccess(res, userWithoutPassword, 'User profile fetched successfully');
   } catch (error) {
@@ -47,7 +47,7 @@ router.put('/profile', async (req, res) => {
     }
 
     const user = await userModel.findById(req.user.userId);
-    const { password: _, ...userWithoutPassword } = user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
 
     sendSuccess(res, userWithoutPassword, 'User profile updated successfully');
   } catch (error) {
