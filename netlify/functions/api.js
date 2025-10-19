@@ -64,11 +64,31 @@ app.use(requestLogger);
 // CORS configuration
 app.use(cors(config.corsOptions));
 
+// Path normalization middleware to handle various API path formats
+app.use((req, res, next) => {
+  // Redirect Netlify function paths to standard /api paths
+  if (req.url.startsWith('/.netlify/functions/api/')) {
+    req.url = req.url.replace('/.netlify/functions/api/', '/api/');
+  }
+  next();
+});
+
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // API routes
+// Use /api prefix for consistency with frontend requests
+app.use('/api/auth', auth);
+app.use('/api/users', users);
+app.use('/api/facebook', facebook);
+app.use('/api/ai', ai);
+app.use('/api/analytics', analytics);
+app.use('/api/autoresponse', autoResponse);
+app.use('/api/competitor', competitor);
+app.use('/api/trending', trendingTopics);
+
+// Also mount routes at the Netlify Functions path for backward compatibility
 app.use('/.netlify/functions/api/auth', auth);
 app.use('/.netlify/functions/api/users', users);
 app.use('/.netlify/functions/api/facebook', facebook);
@@ -78,7 +98,17 @@ app.use('/.netlify/functions/api/autoresponse', autoResponse);
 app.use('/.netlify/functions/api/competitor', competitor);
 app.use('/.netlify/functions/api/trending', trendingTopics);
 
-// Health check
+// Health check endpoints at both paths
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    service: 'Facebook AI Manager API',
+  });
+});
+
+// Keep the Netlify path for backward compatibility
 app.get('/.netlify/functions/api/health', (req, res) => {
   res.json({
     success: true,
