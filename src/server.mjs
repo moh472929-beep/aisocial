@@ -19,11 +19,20 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-import(apiPathURL("src/api/index.mjs"))
-  .then(({ default: apiRoutes }) => app.use("/api", apiRoutes))
-  .catch((err) => logger.error("❌ Failed to load API routes:", err));
+// Rewrite Netlify Functions path to standard /api
+app.use((req, res, next) => {
+  if (req.url.startsWith('/.netlify/functions/api')) {
+    req.url = req.url.replace('/.netlify/functions/api', '/api');
+  }
+  next();
+});
+// Remove eager API mount; mount after DB init
+// import(apiPathURL("src/api/index.mjs"))
+//   .then(({ default: apiRoutes }) => app.use("/api", apiRoutes))
+//   .catch((err) => logger.error("❌ Failed to load API routes:", err));
 
 function apiPathURL(relPath) {
   const fullPath = path.join(process.cwd(), relPath);
@@ -31,7 +40,16 @@ function apiPathURL(relPath) {
 }
 
 dbInit.initDB()
-  .then(() => logger.info("✅ DB initialized and ready"))
+  .then(async () => {
+    logger.info("✅ DB initialized and ready");
+    try {
+      const { default: apiRoutes } = await import(apiPathURL("src/api/index.mjs"));
+      app.use("/api", apiRoutes);
+      logger.info("✅ API routes mounted");
+    } catch (err) {
+      logger.error("❌ Failed to load API routes:", err);
+    }
+  })
   .catch((err) => logger.error("❌ DB init failed:", err));
 
 app.use(express.static(path.join(__dirname, "../public")));

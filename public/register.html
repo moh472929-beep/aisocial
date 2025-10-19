@@ -344,7 +344,7 @@
             loading.style.display = 'block';
             
             try {
-                const response = await fetch('/.netlify/functions/api/auth/register', {
+                const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

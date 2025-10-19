@@ -19,7 +19,7 @@ const loginLimiter = new RateLimiterMemory({
 });
 
 // Signup endpoint with validation
-router.post('/signup', validateSignup, async (req, res, next) => {
+router.post(['/signup', '/register'], validateSignup, async (req, res, next) => {
   try {
     const { fullName, username, email, password } = req.body;
 
@@ -139,15 +139,7 @@ router.post('/login', validateLogin, async (req, res, next) => {
   }
 });
 
-// Register alias matching requirements
-router.post('/register', validateSignup, async (req, res, next) => {
-  req.url = '/signup';
-  router._router.stack.find(r => r.route && r.route.path === '/signup').route.stack[0].handle(
-    req,
-    res,
-    next
-  );
-});
+// Register alias handled by unified route above
 
 // Email verification endpoint
 router.get('/verify', async (req, res, next) => {
