@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 
 import dbInit from "./db/init.js";
 import { logger } from "./utils/logger.mjs";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
 
@@ -66,6 +67,13 @@ dbReady
   .catch((err) => logger.error("❌ DB init failed:", err));
 
 app.use(express.static(path.join(__dirname, "../public")));
+
+// 404 handler for API routes
+app.use('/api', notFoundHandler);
+
+// Error handling middleware
+app.use(errorHandler);
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));
 });

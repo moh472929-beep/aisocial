@@ -69,6 +69,27 @@ router.post(['/signup', '/register'], validateSignup, async (req, res, next) => 
     );
   } catch (error) {
     logger.error('Signup error:', error);
+    
+    // Handle specific error types
+    if (error.code === 11000) {
+      // MongoDB duplicate key error
+      return res.status(409).json({
+        success: false,
+        error: 'User with this email or username already exists',
+        errorAr: 'مستخدم بهذا البريد الإلكتروني أو اسم المستخدم موجود بالفعل'
+      });
+    }
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        errorAr: 'فشل التحقق من البيانات',
+        details: error.message
+      });
+    }
+    
+    // For other errors, use the error handler
     next(error);
   }
 });
