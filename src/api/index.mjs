@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
+import { createRequire } from "module";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -14,14 +15,16 @@ async function loadRoute(relativePath) {
   return module.default || module;
 }
 
-async function initializeRoutes() {
+// Replace async initializer to use createRequire and sync requires
+function initializeRoutes() {
   try {
-    const authRoutes = await loadRoute("./auth.js");
-    const userRoutes = await loadRoute("./users.js");
-    const facebookRoutes = await loadRoute("./facebook-automation.js");
-    const aiRoutes = await loadRoute("./ai.js");
-    const analyticsRoutes = await loadRoute("./analytics.js");
-    const autoResponseRoutes = await loadRoute("./autoResponseController.js");
+    const require = createRequire(import.meta.url);
+    const authRoutes = require("./auth.js");
+    const userRoutes = require("./users.js");
+    const facebookRoutes = require("./facebook-automation.js");
+    const aiRoutes = require("./ai.js");
+    const analyticsRoutes = require("./analytics.js");
+    const autoResponseRoutes = require("./autoResponseController.js");
 
     // ربط الراوترات بالمسارات الخاصة بها
     router.use("/auth", authRoutes);

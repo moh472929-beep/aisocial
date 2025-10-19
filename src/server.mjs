@@ -3,12 +3,13 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
-import { fileURLToPath, pathToFileURL } from "url";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 
 import dbInit from "./db/init.js";
 import { logger } from "./utils/logger.mjs";
-import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import errorModule from "./middleware/errorHandler.js";
+const { errorHandler, notFoundHandler } = errorModule;
 
 dotenv.config();
 
@@ -65,22 +66,22 @@ app.use('/api', async (req, res, next) => {
 });
 
 // Mount API routes eagerly; guarded by the middleware above
-function apiPathURL(relPath) {
-  const fullPath = path.join(process.cwd(), relPath);
-  return pathToFileURL(fullPath).href;
-}
+// apiPathURL removed (unused)
 
-import(apiPathURL("src/api/index.mjs"))
-  .then(({ default: apiRoutes }) => {
-    app.use("/api", apiRoutes);
-    // 404 handler for API routes must come AFTER apiRoutes
-    app.use('/api', notFoundHandler);
-    // Move catch-all after API routes to avoid intercepting /api
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "../public", "index.html"));
-    });
-  })
-  .catch((err) => logger.error("❌ Failed to load API routes:", err));
+import apiRoutes from "./api/index.mjs";
+
+app.use("/api", apiRoutes);
+
+// Serve static files BEFORE catch-all route
+app.use(express.static(path.join(__dirname, "../public")));
+
+// 404 handler for API routes must come AFTER apiRoutes
+app.use('/api', notFoundHandler);
+
+// Move catch-all after API routes to avoid intercepting /api (should be LAST)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public", "index.html"));
+});
 
 // Log DB readiness
 dbReady
@@ -88,8 +89,6 @@ dbReady
     logger.info("✅ DB initialized and ready");
   })
   .catch((err) => logger.error("❌ DB init failed:", err));
-
-app.use(express.static(path.join(__dirname, "../public")));
 
 // Error handling middleware
 app.use(errorHandler);
@@ -102,3 +101,5 @@ app.listen(PORT, () => {
 });
 
 export default app;
+
+// Removed unused apiPathURL helper

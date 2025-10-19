@@ -1,20 +1,38 @@
 const axios = require('axios');
 
+// Resolve an accessible base URL from common ports
+async function resolveBaseURL() {
+  const candidates = [
+    process.env.PORT ? `http://localhost:${process.env.PORT}` : null,
+    'http://localhost:3000',
+    'http://localhost:10000',
+    'http://localhost:4001',
+  ].filter(Boolean);
+
+  for (const base of candidates) {
+    try {
+      await axios.get(`${base}/api/`, { timeout: 2000 });
+      return base;
+    } catch {}
+  }
+  return 'http://localhost:3000';
+}
+
 // Test registration endpoint
-async function testRegistration() {
+async function testRegistration(base) {
   const testUser = {
     fullName: 'Test User',
     username: 'testuser123',
     email: 'test@example.com',
-    password: 'password123'
+    password: 'Password123!'
   };
 
   try {
     console.log('🧪 Testing registration endpoint...');
-    console.log('📤 Sending request to: http://localhost:10000/api/auth/register');
+    console.log(`📤 Sending request to: ${base}/api/auth/register`);
     console.log('📋 Test data:', testUser);
 
-    const response = await axios.post('http://localhost:10000/api/auth/register', testUser, {
+    const response = await axios.post(`${base}/api/auth/register`, testUser, {
       headers: {
         'Content-Type': 'application/json'
       },
@@ -27,7 +45,7 @@ async function testRegistration() {
 
     // Test if user can login
     console.log('\n🔐 Testing login with created user...');
-    const loginResponse = await axios.post('http://localhost:10000/api/auth/login', {
+    const loginResponse = await axios.post(`${base}/api/auth/login`, {
       email: testUser.email,
       password: testUser.password
     }, {
@@ -55,10 +73,10 @@ async function testRegistration() {
 }
 
 // Test database connection status
-async function testDatabaseStatus() {
+async function testDatabaseStatus(base) {
   try {
-    console.log('\n🗄️ Testing database status...');
-    const response = await axios.get('http://localhost:10000/api/', {
+    console.log('\n🗄️ Testing API status...');
+    const response = await axios.get(`${base}/api/`, {
       timeout: 5000
     });
 
@@ -78,9 +96,11 @@ async function testDatabaseStatus() {
 // Run tests
 async function runTests() {
   console.log('🚀 Starting registration diagnostics...\n');
-  
-  await testDatabaseStatus();
-  await testRegistration();
+  const base = await resolveBaseURL();
+  console.log(`🔎 Resolved API base: ${base}`);
+
+  await testDatabaseStatus(base);
+  await testRegistration(base);
   
   console.log('\n✨ Diagnostics completed!');
 }
