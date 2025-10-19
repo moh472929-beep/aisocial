@@ -1,12 +1,12 @@
 import express from "express";
 import path from "path";
-import { pathToFileURL } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 
 const router = express.Router();
 
 // دالة لتحميل الراوترات من المسار الصحيح ديناميكياً
 async function loadRoute(relativePath) {
-  const fullPath = path.join(process.cwd(), "src", "api", relativePath);
+  const fullPath = path.join(__dirname, relativePath);
   const moduleURL = pathToFileURL(fullPath).href;
   const module = await import(moduleURL);
   return module.default || module;
@@ -14,12 +14,12 @@ async function loadRoute(relativePath) {
 
 async function initializeRoutes() {
   try {
-    const authRoutes = await loadRoute("auth/index.js");
-    const userRoutes = await loadRoute("users/index.js");
-    const facebookRoutes = await loadRoute("facebook/index.js");
-    const aiRoutes = await loadRoute("ai/index.js");
-    const analyticsRoutes = await loadRoute("analytics/index.js");
-    const autoResponseRoutes = await loadRoute("autoresponse/index.js");
+    const authRoutes = await loadRoute("./auth.js");
+    const userRoutes = await loadRoute("./users.js");
+    const facebookRoutes = await loadRoute("./facebook-automation.js");
+    const aiRoutes = await loadRoute("./ai.js");
+    const analyticsRoutes = await loadRoute("./analytics.js");
+    const autoResponseRoutes = await loadRoute("./autoResponseController.js");
 
     // ربط الراوترات بالمسارات الخاصة بها
     router.use("/auth", authRoutes);
@@ -55,3 +55,6 @@ async function initializeRoutes() {
 await initializeRoutes();
 
 export default router;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
