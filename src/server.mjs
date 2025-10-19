@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from "url";
 import dotenv from "dotenv";
 
 import dbInit from "./db/init.js";
-import { logger } from "./utils/logger.js";
+import { logger } from "./utils/logger.mjs";
 
 dotenv.config();
 
@@ -21,23 +21,19 @@ app.use(helmet());
 app.use(express.json());
 app.use(morgan("dev"));
 
-// ✅ تحميل المسارات الديناميكية (تعمل على Render وبيئتك المحلية)
-import(apiPathURL("src/api/index.js"))
+import(apiPathURL("src/api/index.mjs"))
   .then(({ default: apiRoutes }) => app.use("/api", apiRoutes))
   .catch((err) => logger.error("❌ Failed to load API routes:", err));
 
-// دالة لتوليد المسار الديناميكي
 function apiPathURL(relPath) {
   const fullPath = path.join(process.cwd(), relPath);
   return pathToFileURL(fullPath).href;
 }
 
-// ✅ قاعدة البيانات
 dbInit.initDB()
   .then(() => logger.info("✅ DB initialized and ready"))
   .catch((err) => logger.error("❌ DB init failed:", err));
 
-// ✅ الواجهة الرسومية
 app.use(express.static(path.join(__dirname, "../public")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));

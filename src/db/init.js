@@ -4,7 +4,7 @@ const { initializeModels, getModel } = require("./models.js");
 async function initDB() {
   try {
     logger.info("🚀 Initializing database...");
-    const { connectDB } = await import("./connection.js");
+    const { connectDB } = await import("./connection.mjs");
     await connectDB();
     await initializeModels();
     logger.info("✅ Database initialized successfully");
