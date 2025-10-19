@@ -95,7 +95,13 @@ const translations = {
     french: 'French',
     german: 'German',
     spanish: 'Spanish',
-    russian: 'Russian'
+    russian: 'Russian',
+    
+    // Password Requirements
+    passwordRequirements: 'Password Requirements:',
+    passwordLength: 'Must be at least 10 characters long',
+    passwordMix: 'Preferably use a mix of letters, numbers, and symbols',
+    passwordExample: 'Example: MyPassword123!'
   },
   
   ar: {
@@ -193,7 +199,13 @@ const translations = {
     french: 'الفرنسية',
     german: 'الألمانية',
     spanish: 'الإسبانية',
-    russian: 'الروسية'
+    russian: 'الروسية',
+    
+    // Password Requirements
+    passwordRequirements: 'متطلبات كلمة المرور:',
+    passwordLength: 'يجب أن تكون 10 أحرف على الأقل',
+    passwordMix: 'يُفضل استخدام مزيج من الأحرف والأرقام والرموز',
+    passwordExample: 'مثال: MyPassword123!'
   },
   
   fr: {

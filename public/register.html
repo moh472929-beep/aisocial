@@ -105,6 +105,15 @@
             <div class="form-group">
               <label for="password" data-translate="passwordLabel">كلمة المرور</label>
               <input id="password" type="password" class="form-control" placeholder="كلمة المرور" data-translate="passwordPlaceholder" required />
+              <div class="password-hint" style="margin-top: 0.5rem; padding: 0.75rem; background: rgba(74, 144, 226, 0.1); border: 1px solid rgba(74, 144, 226, 0.3); border-radius: 8px; font-size: 0.85rem; color: var(--text-color);">
+                <i class="fas fa-info-circle" style="color: #4a90e2; margin-left: 0.5rem;"></i>
+                <strong data-translate="passwordRequirements">متطلبات كلمة المرور:</strong>
+                <ul style="margin: 0.5rem 0 0 1.5rem; padding: 0; list-style-type: disc;">
+                  <li data-translate="passwordLength">يجب أن تكون 10 أحرف على الأقل</li>
+                  <li data-translate="passwordMix">يُفضل استخدام مزيج من الأحرف والأرقام والرموز</li>
+                  <li data-translate="passwordExample">مثال: MyPassword123!</li>
+                </ul>
+              </div>
             </div>
             <button type="submit" class="btn btn-primary">
               <span id="register-text" data-translate="createAccount">إنشاء حساب</span>
