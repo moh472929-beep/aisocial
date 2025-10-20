@@ -7,6 +7,25 @@ let aiPermissionsEnabled = false;
 // Mark this page as free; disable paid-only features visually
 window.pageAccess = 'free';
 
+// Initialize currentUser from localStorage immediately
+function initializeCurrentUser() {
+    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    if (storedUser && token) {
+        try {
+            currentUser = JSON.parse(storedUser);
+            console.log('Current user initialized from localStorage:', currentUser);
+        } catch (error) {
+            console.error('Error parsing stored user data:', error);
+            currentUser = null;
+        }
+    }
+}
+
+// Initialize user immediately when script loads
+initializeCurrentUser();
+
 // Load user data
 async function loadUserData() {
     const token = localStorage.getItem('token');
@@ -33,6 +52,13 @@ async function loadUserData() {
         updateUserInfo();
         loadUserPosts();
         loadAIPermissions();
+        return;
+    }
+    
+    // Ensure currentUser is available for API calls
+    if (!currentUser) {
+        console.error('currentUser is not initialized in loadUserData');
+        alert('خطأ: لم يتم تحميل بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.');
         return;
     }
     
@@ -107,6 +133,12 @@ async function loadAIPermissions() {
         return;
     }
     
+    // Ensure currentUser is available
+    if (!currentUser) {
+        console.error('currentUser is not initialized in loadAIPermissions');
+        return;
+    }
+    
     try {
         const response = await fetch('/.netlify/functions/api/ai/permissions', {
             headers: {
@@ -139,6 +171,13 @@ async function toggleAIPermissions() {
             'تم تمكين صلاحيات AI بنجاح!' : 
             'تم تعطيل صلاحيات AI بنجاح!', 
             'ai');
+        return;
+    }
+    
+    // Ensure currentUser is available
+    if (!currentUser) {
+        console.error('currentUser is not initialized in toggleAIPermissions');
+        checkbox.checked = !newStatus; // Revert checkbox state
         return;
     }
     
@@ -181,6 +220,13 @@ async function sendAIChatMessage() {
     const message = inputElement.value.trim();
     
     if (!message) return;
+    
+    // Ensure currentUser is available
+    if (!currentUser) {
+        console.error('currentUser is not initialized');
+        addAIChatMessage('خطأ: لم يتم تحميل بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.', 'ai');
+        return;
+    }
     
     const sendButton = document.getElementById('ai-chat-send');
     sendButton.disabled = true;
@@ -260,6 +306,12 @@ function updateUserInfo() {
 async function loadUserPosts() {
     const token = localStorage.getItem('token');
     
+    // Ensure currentUser is available
+    if (!currentUser) {
+        console.error('currentUser is not initialized in loadUserPosts');
+        return;
+    }
+    
     try {
         const response = await fetch('/.netlify/functions/api/facebook/posts', {
             headers: {
@@ -321,6 +373,12 @@ async function generatePost() {
     const customPrompt = document.getElementById('custom-prompt').value;
     
     const token = localStorage.getItem('token');
+    
+    // Check if user has remaining posts
+    if (currentUser && currentUser.postsRemaining <= 0) {
+        alert('لقد استنفدت عدد المنشورات المتاحة. يرجى الترقية للحصول على المزيد.');
+        return;
+    }
     
     // إنشاء منشور تجريبي إذا كان المستخدم تجريبي
     if (token === 'demo-token-123') {
