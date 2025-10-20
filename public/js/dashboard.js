@@ -7,7 +7,74 @@ let aiPermissionsEnabled = false;
 // Mark this page as free; disable paid-only features visually
 window.pageAccess = 'free';
 
-// Session persistence and validation
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', async function() {
+    // CRITICAL: Initialize session FIRST before any other operations
+    console.log('Dashboard: Starting initialization...');
+    
+    // Use the global session manager for consistency
+    if (typeof window.sessionManager !== 'undefined') {
+        const isAuthenticated = await window.sessionManager.initializeSession();
+        
+        if (!isAuthenticated) {
+            // Session validation failed, user will be redirected
+            console.log('Dashboard: Session invalid, redirecting to login');
+            return;
+        }
+        
+        currentUser = window.sessionManager.getCurrentUser();
+        console.log('Dashboard: Session validated successfully');
+    } else {
+        console.error('Dashboard: SessionManager not available');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Apply access control after session validation
+    if (typeof applyAccessControl === 'function') applyAccessControl();
+    
+    // Load user data only after session validation
+    loadUserData();
+    
+    // Initialize language system AFTER session is confirmed
+    if (typeof initializeLanguageSystem === 'function') {
+        console.log('Dashboard: Initializing language system...');
+        initializeLanguageSystem();
+    }
+
+    // Set up AI chat functionality
+    const aiChatInput = document.getElementById('ai-chat-input');
+    const aiChatSend = document.getElementById('ai-chat-send');
+    
+    if (aiChatSend) {
+        aiChatSend.addEventListener('click', sendAIChatMessage);
+    }
+    
+    if (aiChatInput) {
+        aiChatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendAIChatMessage();
+            }
+        });
+    }
+    
+    // Set up logout link event listener
+    const logoutLinks = document.querySelectorAll('a[href="#"]');
+    logoutLinks.forEach(link => {
+        if (link.textContent.includes('تسجيل الخروج') || link.querySelector('[data-translate="logoutMenuItem"]')) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                logout();
+            });
+        }
+    });
+});
+
+// DEPRECATED FUNCTIONS - Use SessionManager instead
+// These functions are kept for backward compatibility but should not be used
+
+// Session persistence and validation - DEPRECATED: Use SessionManager instead
 async function validateSession() {
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
@@ -332,7 +399,13 @@ function updatePostsList() {
     
     // Apply translations to the newly added elements
     const savedLang = localStorage.getItem('preferredLanguage') || 'ar';
-    updateTranslatableElements(savedLang);
+    
+    // Ensure language system is initialized before applying translations
+    if (typeof window.updateAllLanguageElements === 'function') {
+        window.updateAllLanguageElements(savedLang);
+    } else if (typeof updateTranslatableElements === 'function') {
+        updateTranslatableElements(savedLang);
+    }
 }
 
 // Update stats
@@ -398,72 +471,13 @@ async function generatePost() {
 // Logout function
 function logout() {
     console.log('Logging out user...');
-    clearSession();
-    redirectToLogin();
+    if (typeof window.sessionManager !== 'undefined') {
+        window.sessionManager.logout();
+    } else {
+        // Fallback logout
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        window.location.href = 'login.html';
+    }
 }
-
-// Initialize dashboard
-document.addEventListener('DOMContentLoaded', async function() {
-    // CRITICAL: Initialize session FIRST before any other operations
-    console.log('Dashboard: Starting initialization...');
-    
-    // Initialize and validate session first - this must happen before language switching
-    const sessionValid = await initializeSession();
-    
-    if (!sessionValid) {
-        // Session validation failed, user will be redirected
-        console.log('Dashboard: Session invalid, redirecting to login');
-        return;
-    }
-    
-    console.log('Dashboard: Session validated successfully');
-    
-    // Apply access control after session validation
-    if (typeof applyAccessControl === 'function') applyAccessControl();
-    
-    // Load user data only after session validation
-    loadUserData();
-    
-    // Initialize language system AFTER session is confirmed
-    if (typeof initializeLanguageSystem === 'function') {
-        console.log('Dashboard: Initializing language system...');
-        initializeLanguageSystem();
-    }
-    
-    // Set up event listeners
-    const generateBtn = document.getElementById('generate-post-btn');
-    if (generateBtn) {
-        generateBtn.addEventListener('click', generatePost);
-    }
-    
-    const aiPermissionsCheckbox = document.getElementById('ai-permissions');
-    if (aiPermissionsCheckbox) {
-        aiPermissionsCheckbox.addEventListener('change', toggleAIPermissions);
-    }
-    
-    const aiChatSendBtn = document.getElementById('ai-chat-send');
-    if (aiChatSendBtn) {
-        aiChatSendBtn.addEventListener('click', sendAIChatMessage);
-    }
-    
-    const aiChatInput = document.getElementById('ai-chat-input');
-    if (aiChatInput) {
-        aiChatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendAIChatMessage();
-            }
-        });
-    }
-    
-    // Set up logout link event listener
-    const logoutLinks = document.querySelectorAll('a[href="#"]');
-    logoutLinks.forEach(link => {
-        if (link.textContent.includes('تسجيل الخروج') || link.querySelector('[data-translate="logoutMenuItem"]')) {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                logout();
-            });
-        }
-    });
-});

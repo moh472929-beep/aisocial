@@ -111,16 +111,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 const refreshToken = data.refreshToken || body.refreshToken || '';
                 
                 console.log('Login: Storing authentication data...');
+                
+                // CRITICAL: Preserve language preference during login
+                const currentLanguage = localStorage.getItem('preferredLanguage');
+                
                 localStorage.setItem('user', user ? JSON.stringify(user) : '');
                 localStorage.setItem('token', accessToken);
                 if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+                
+                // Restore language preference if it was set
+                if (currentLanguage) {
+                    localStorage.setItem('preferredLanguage', currentLanguage);
+                }
                 
                 // Verify data was stored correctly
                 const storedUser = localStorage.getItem('user');
                 const storedToken = localStorage.getItem('token');
                 console.log('Login: Auth data stored successfully', { 
                     hasUser: !!storedUser, 
-                    hasToken: !!storedToken 
+                    hasToken: !!storedToken,
+                    preservedLanguage: currentLanguage
                 });
                 
                 showMsg('success', 'تم تسجيل الدخول بنجاح! جاري التوجيه...');

@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Language Switcher: Detected protected page, waiting for session validation...');
         setTimeout(() => {
             initializeLanguageSystem();
-        }, 100); // Small delay to ensure session validation completes first
+        }, 50); // Reduced delay to minimize language switching issues
     } else {
         // For public pages, initialize immediately
         initializeLanguageSystem();

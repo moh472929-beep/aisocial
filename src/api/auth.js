@@ -169,6 +169,7 @@ router.post('/login', validateLogin, async (req, res, next) => {
       res,
       {
         user: userWithoutPassword,
+        token: accessToken,        // Add token field for frontend compatibility
         accessToken,
         refreshToken,
       },
