@@ -39,6 +39,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
+// Enhanced logging for debugging ERR_ABORTED issues
+app.use((req, res, next) => {
+  logger.info(`📥 ${req.method} ${req.url} - User-Agent: ${req.get('User-Agent')}`);
+  
+  // Log response completion
+  res.on('finish', () => {
+    logger.info(`📤 ${req.method} ${req.url} - Status: ${res.statusCode} - Size: ${res.get('Content-Length') || 'unknown'}`);
+  });
+  
+  // Log response errors
+  res.on('error', (err) => {
+    logger.error(`❌ Response error for ${req.method} ${req.url}:`, err);
+  });
+  
+  next();
+});
+
 // Rewrite Netlify Functions path to standard /api
 app.use((req, res, next) => {
   if (req.url.startsWith('/.netlify/functions/api')) {
@@ -73,7 +90,18 @@ import apiRoutes from "./api/index.mjs";
 app.use("/api", apiRoutes);
 
 // Serve static files BEFORE catch-all route
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "../public"), {
+  setHeaders: (res, path) => {
+    // Set proper MIME types for HTML files
+    if (path.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    }
+    // Add cache control headers
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+}));
 
 // 404 handler for API routes must come AFTER apiRoutes
 app.use('/api', notFoundHandler);
