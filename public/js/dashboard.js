@@ -14,7 +14,8 @@ async function validateSession() {
     
     // If no token or user data, redirect to login
     if (!token || !storedUser) {
-        console.log('No valid session found, redirecting to login');
+        console.log('No valid session found, redirecting to login...');
+        clearSession();
         redirectToLogin();
         return false;
     }
@@ -22,12 +23,6 @@ async function validateSession() {
     try {
         // Parse stored user data
         currentUser = JSON.parse(storedUser);
-        
-        // Skip backend validation for demo users
-        if (currentUser.id === 'demo-user-123' || token === 'demo-token-123') {
-            console.log('Demo user session validated');
-            return true;
-        }
         
         // Validate token with backend
         const response = await fetch('/.netlify/functions/api/auth/profile', {
@@ -110,107 +105,29 @@ async function loadUserData() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
-    // إنشاء مستخدم تجريبي للاختبار إذا لم يكن هناك مستخدم مسجل دخوله
+    // Check if user is authenticated
     if (!token || !user) {
-        console.log('إنشاء مستخدم تجريبي للاختبار...');
-        currentUser = {
-            id: 'demo-user-123',
-            fullName: 'مستخدم تجريبي',
-            username: 'demo_user',
-            email: 'demo@example.com',
-            subscription: 'free',
-            postsRemaining: 2,
-            facebookPages: [],
-            posts: []
-        };
-        
-        // حفظ المستخدم التجريبي في localStorage
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        localStorage.setItem('token', 'demo-token-123');
-        
-        updateUserInfo();
-        loadUserPosts();
-        loadAIPermissions();
-        return;
-    }
-    
-    // Ensure currentUser is available for API calls
-    if (!currentUser) {
-        console.error('currentUser is not initialized in loadUserData');
-        alert('خطأ: لم يتم تحميل بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.');
+        console.log('No authenticated user found');
+        clearSession();
+        redirectToLogin();
         return;
     }
     
     try {
-        const response = await fetch('/.netlify/functions/api/users/profile', {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'user-id': JSON.parse(user).id
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            currentUser = data.user;
-            updateUserInfo();
-            loadUserPosts();
-            loadAIPermissions();
-        } else {
-            // إذا فشل الاتصال بالخادم، استخدم المستخدم التجريبي
-            console.log('فشل الاتصال بالخادم، استخدام المستخدم التجريبي...');
-            currentUser = {
-                id: 'demo-user-123',
-                fullName: 'مستخدم تجريبي',
-                username: 'demo_user',
-                email: 'demo@example.com',
-                subscription: 'free',
-                postsRemaining: 2,
-                facebookPages: [],
-                posts: []
-            };
-            
-            localStorage.setItem('user', JSON.stringify(currentUser));
-            localStorage.setItem('token', 'demo-token-123');
-            
-            updateUserInfo();
-            loadUserPosts();
-            loadAIPermissions();
-        }
-    } catch (error) {
-        console.error('Error loading user data:', error);
-        // في حالة الخطأ، استخدم المستخدم التجريبي
-        console.log('خطأ في الاتصال، استخدام المستخدم التجريبي...');
-        currentUser = {
-            id: 'demo-user-123',
-            fullName: 'مستخدم تجريبي',
-            username: 'demo_user',
-            email: 'demo@example.com',
-            subscription: 'free',
-            postsRemaining: 2,
-            facebookPages: [],
-            posts: []
-        };
-        
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        localStorage.setItem('token', 'demo-token-123');
-        
+        currentUser = JSON.parse(user);
         updateUserInfo();
         loadUserPosts();
         loadAIPermissions();
+    } catch (error) {
+        console.error('Error parsing user data:', error);
+        clearSession();
+        redirectToLogin();
     }
 }
 
 // Load AI permissions
 async function loadAIPermissions() {
     const token = localStorage.getItem('token');
-    
-    if (token === 'demo-token-123') {
-        // For demo user, set default AI permissions
-        aiPermissionsEnabled = false;
-        document.getElementById('ai-permissions').checked = aiPermissionsEnabled;
-        return;
-    }
     
     // Ensure currentUser is available
     if (!currentUser) {
@@ -242,16 +159,6 @@ async function toggleAIPermissions() {
     const token = localStorage.getItem('token');
     const checkbox = document.getElementById('ai-permissions');
     const newStatus = checkbox.checked;
-    
-    if (token === 'demo-token-123') {
-        // For demo user, just update the UI
-        aiPermissionsEnabled = newStatus;
-        addAIChatMessage(newStatus ? 
-            'تم تمكين صلاحيات AI بنجاح!' : 
-            'تم تعطيل صلاحيات AI بنجاح!', 
-            'ai');
-        return;
-    }
     
     // Ensure currentUser is available
     if (!currentUser) {
@@ -313,15 +220,6 @@ async function sendAIChatMessage() {
     // Add user message to chat
     addAIChatMessage(message, 'user');
     inputElement.value = '';
-    
-    if (localStorage.getItem('token') === 'demo-token-123') {
-        // Demo response
-        setTimeout(() => {
-            addAIChatMessage('هذه رسالة تجريبية من AI. في الإنتاج، سيتم الاتصال بـ OpenAI API للحصول على ردود فعل حقيقية.', 'ai');
-            sendButton.disabled = false;
-        }, 1000);
-        return;
-    }
     
     try {
         const response = await fetch('/.netlify/functions/api/ai/chat', {
@@ -459,73 +357,6 @@ async function generatePost() {
         return;
     }
     
-    // إنشاء منشور تجريبي إذا كان المستخدم تجريبي
-    if (token === 'demo-token-123') {
-        console.log('إنشاء منشور تجريبي...');
-        
-        const demoPosts = {
-            motivational: {
-                professional: "تذكر أن النجاح ليس وصولاً بل رحلة مستمرة من التعلم والنمو. استمر في السعي نحو أهدافك! 💪",
-                friendly: "يا صديقي، كل يوم جديد هو فرصة لتحقيق شيء رائع! لا تستسلم أبداً 🌟",
-                casual: "صباح الخير! اليوم سيكون يوم رائع، فقط آمن بذلك! ☀️",
-                inspirational: "الأحلام لا تتحقق بالصدفة، بل بالعمل الجاد والإصرار. ابدأ اليوم! 🚀"
-            },
-            business: {
-                professional: "في عالم الأعمال المتغير، الابتكار هو المفتاح للبقاء في المقدمة. استثمر في أفكارك! 🚀",
-                friendly: "الأعمال الناجحة مبنية على العلاقات القوية والثقة المتبادلة. ابني شبكة علاقاتك! 🤝",
-                casual: "نصيحة اليوم: استمع لعملائك أكثر من حديثك! 👂",
-                inspirational: "كل رائد أعمال ناجح بدأ بفكرة واحدة. ما هي فكرتك؟ 💡"
-            },
-            lifestyle: {
-                professional: "التوازن بين العمل والحياة الشخصية هو أساس السعادة الحقيقية. اعتن بنفسك! ⚖️",
-                friendly: "الحياة جميلة عندما نستمتع باللحظات الصغيرة! شاركنا لحظاتك المميزة 📸",
-                casual: "أحياناً أفضل قرار هو أخذ استراحة! 😌",
-                inspirational: "الحياة قصيرة جداً لتضيعها في القلق. عش اللحظة! ⏰"
-            },
-            educational: {
-                professional: "التعلم المستمر هو مفتاح التميز في أي مجال. استثمر في تطوير مهاراتك! 📚",
-                friendly: "شاركنا ما تعلمته اليوم! المعرفة تنمو عندما نشاركها مع الآخرين 🌱",
-                casual: "حقائق مذهلة: هل تعلم أن...؟ 🤓",
-                inspirational: "العلم نور والجهل ظلام. اقرأ وتعلم كل يوم! 🔍"
-            },
-            entertainment: {
-                professional: "الترفيه جزء مهم من الحياة الصحية. خذ وقتاً للاستمتاع! 🎭",
-                friendly: "شاركنا ما يشعرك بالسعادة اليوم! 😄",
-                casual: "وقت المرح! ما هو آخر شيء جعلك تضحك؟ 😂",
-                inspirational: "الضحك أفضل دواء! اجعل كل يوم مليئاً بالفرح! 😊"
-            }
-        };
-        
-        const postContent = demoPosts[category]?.[tone] || 
-            "منشور مثير للاهتمام! شاركنا أفكارك في التعليقات 💭";
-        
-        const newPost = {
-            id: Date.now().toString(),
-            content: postContent + (customPrompt ? `\n\n${customPrompt}` : ''),
-            category,
-            tone,
-            customPrompt,
-            createdAt: new Date().toISOString(),
-            status: 'draft',
-            aiGenerated: true
-        };
-        
-        // إضافة المنشور الجديد
-        userPosts.unshift(newPost);
-        currentUser.postsRemaining = Math.max(0, currentUser.postsRemaining - 1);
-        
-        // عرض المنشور المُنشأ
-        document.getElementById('post-content').textContent = newPost.content;
-        document.getElementById('generated-post').style.display = 'block';
-        
-        // تحديث القوائم والإحصائيات
-        updatePostsList();
-        updateStats();
-        updateUserInfo();
-        
-        return;
-    }
-    
     try {
         const response = await fetch('/.netlify/functions/api/facebook/generate-post', {
             method: 'POST',
@@ -573,19 +404,31 @@ function logout() {
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async function() {
-    // Apply access control
-    if (typeof applyAccessControl === 'function') applyAccessControl();
+    // CRITICAL: Initialize session FIRST before any other operations
+    console.log('Dashboard: Starting initialization...');
     
-    // Initialize and validate session first
+    // Initialize and validate session first - this must happen before language switching
     const sessionValid = await initializeSession();
     
     if (!sessionValid) {
         // Session validation failed, user will be redirected
+        console.log('Dashboard: Session invalid, redirecting to login');
         return;
     }
     
+    console.log('Dashboard: Session validated successfully');
+    
+    // Apply access control after session validation
+    if (typeof applyAccessControl === 'function') applyAccessControl();
+    
     // Load user data only after session validation
     loadUserData();
+    
+    // Initialize language system AFTER session is confirmed
+    if (typeof initializeLanguageSystem === 'function') {
+        console.log('Dashboard: Initializing language system...');
+        initializeLanguageSystem();
+    }
     
     // Set up event listeners
     const generateBtn = document.getElementById('generate-post-btn');

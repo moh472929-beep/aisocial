@@ -22,12 +22,6 @@ class SessionManager {
             // Parse stored user data
             this.currentUser = JSON.parse(storedUser);
             
-            // Skip backend validation for demo users
-            if (this.currentUser.id === 'demo-user-123' || token === 'demo-token-123') {
-                console.log('Demo user session validated');
-                return true;
-            }
-            
             // Validate token with backend
             const response = await fetch('/.netlify/functions/api/auth/profile', {
                 method: 'GET',

@@ -590,6 +590,8 @@ function logout() {
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('AI Dashboard: Starting initialization...');
+    
     // Enable all features for paid users on AI Dashboard
     window.pageAccess = 'paid';
     if (typeof applyAccessControl === 'function') {
@@ -602,10 +604,32 @@ document.addEventListener('DOMContentLoaded', async function() {
         const isAuthenticated = await sessionManager.initializeSession();
         
         if (!isAuthenticated) {
+            console.log('AI Dashboard: Session invalid, redirecting to login');
             return; // Session manager will handle redirect
         }
         
+        console.log('AI Dashboard: Session validated successfully');
         currentUser = sessionManager.getCurrentUser();
+    } else {
+        console.error('AI Dashboard: SessionManager not available');
+        // Fallback to basic session check
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        if (!token || !user) {
+            console.log('AI Dashboard: No session found, redirecting to login');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        try {
+            currentUser = JSON.parse(user);
+            console.log('AI Dashboard: Using fallback session validation');
+        } catch (error) {
+            console.error('AI Dashboard: Invalid user data, redirecting to login');
+            window.location.href = 'login.html';
+            return;
+        }
     }
     
     // Initialize components

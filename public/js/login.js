@@ -71,14 +71,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 const accessToken = data.accessToken || body.accessToken || body.token || '';
                 const refreshToken = data.refreshToken || body.refreshToken || '';
                 
+                console.log('Login: Storing authentication data...');
                 localStorage.setItem('user', user ? JSON.stringify(user) : '');
                 localStorage.setItem('token', accessToken);
                 if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
                 
+                // Verify data was stored correctly
+                const storedUser = localStorage.getItem('user');
+                const storedToken = localStorage.getItem('token');
+                console.log('Login: Auth data stored successfully', { 
+                    hasUser: !!storedUser, 
+                    hasToken: !!storedToken 
+                });
+                
                 showMsg('success', 'تم تسجيل الدخول بنجاح! جاري التوجيه...');
+                
+                // Increased delay to ensure localStorage operations complete
                 setTimeout(() => { 
+                    console.log('Login: Redirecting to dashboard...');
                     window.location.href = 'dashboard.html'; 
-                }, 1200);
+                }, 1500); // Increased from 1200ms to 1500ms
             } else {
                 if (res.status === 429) {
                     showMsg('error', 'عدد محاولات تسجيل الدخول كبير، يرجى الانتظار قليلاً');

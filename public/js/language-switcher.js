@@ -1,5 +1,33 @@
 // Language Switcher Functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // CRITICAL: Check if we're on a protected page and wait for session validation
+    const isProtectedPage = window.location.pathname.includes('dashboard') || 
+                           window.location.pathname.includes('ai-dashboard') ||
+                           window.location.pathname.includes('analytics') ||
+                           window.location.pathname.includes('autoresponse');
+    
+    if (isProtectedPage) {
+        // For protected pages, delay language initialization to allow session validation first
+        console.log('Language Switcher: Detected protected page, waiting for session validation...');
+        setTimeout(() => {
+            initializeLanguageSystem();
+        }, 100); // Small delay to ensure session validation completes first
+    } else {
+        // For public pages, initialize immediately
+        initializeLanguageSystem();
+    }
+});
+
+function initializeLanguageSystem() {
+    // Prevent duplicate initialization
+    if (window.languageSystemInitialized) {
+        console.log('Language Switcher: Already initialized, skipping...');
+        return;
+    }
+    
+    console.log('Language Switcher: Initializing language system...');
+    window.languageSystemInitialized = true;
+    
     // Load saved language preference immediately
     const savedLang = localStorage.getItem('preferredLanguage') || 'ar';
     
@@ -28,7 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle dropdown
     selectedLanguage.addEventListener('click', function(e) {
         e.stopPropagation();
-        languageDropdown.style.display = languageDropdown.style.display === 'block' ? 'none' : 'block';
+        const currentDisplay = window.getComputedStyle(languageDropdown).display;
+        languageDropdown.style.display = (currentDisplay === 'none') ? 'block' : 'none';
     });
     
     // Close dropdown when clicking outside
@@ -60,6 +89,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update all language elements with smooth transitions
     function updateAllLanguageElements(lang) {
+        console.log('Language Switcher: Updating language elements to:', lang);
+        
+        // CRITICAL: Preserve authentication data during language change
+        const authData = {
+            user: localStorage.getItem('user'),
+            token: localStorage.getItem('token'),
+            refreshToken: localStorage.getItem('refreshToken')
+        };
+        
         // Add transition effect to all text elements
         const allTextElements = document.querySelectorAll('h1, h2, h3, h4, p, span, div, a, label, button, li, option, select, textarea');
         allTextElements.forEach(element => {
@@ -93,6 +131,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update auto-response dashboard specific content
         updateAutoResponseDashboardContent(lang);
+        
+        // CRITICAL: Restore authentication data after language operations
+        if (authData.user) localStorage.setItem('user', authData.user);
+        if (authData.token) localStorage.setItem('token', authData.token);
+        if (authData.refreshToken) localStorage.setItem('refreshToken', authData.refreshToken);
+        
+        console.log('Language Switcher: Language updated successfully, auth data preserved');
         
         // Remove transition effect after a short delay
         setTimeout(() => {
@@ -2269,4 +2314,4 @@ document.addEventListener('DOMContentLoaded', function() {
         // This function can be expanded if needed for specific auto-response dashboard updates
         // For now, it's just a placeholder to ensure the function exists
     }
-});
+}

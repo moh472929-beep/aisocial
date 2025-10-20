@@ -460,5 +460,53 @@
 
     <script src="js/main.js"></script>
     <script src="js/language-switcher.js"></script>
+    <script src="js/session-manager.js"></script>
+    <script>
+        // Initialize session validation for subscription page
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Subscription page: Starting session validation');
+            window.subscriptionScriptExecuted = true; // For testing
+            
+            // Direct session check without SessionManager
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            console.log('Subscription: Token exists:', !!token);
+            console.log('Subscription: User exists:', !!user);
+            
+            if (!token || !user) {
+                console.log('Subscription: No session found, redirecting to login');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // If we have token and user, validate with backend
+            try {
+                const response = await fetch('/.netlify/functions/api/auth/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    cache: 'no-cache'
+                });
+                
+                if (!response.ok) {
+                    console.log('Subscription: Session validation failed, redirecting to login');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('refreshToken');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                console.log('Subscription: Session validated successfully');
+            } catch (error) {
+                console.error('Subscription: Session validation error:', error);
+                // On network error, allow access with cached data
+                console.log('Subscription: Using cached session due to network error');
+            }
+        });
+    </script>
 </body>
 </html>
