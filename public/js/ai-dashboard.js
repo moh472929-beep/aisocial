@@ -589,11 +589,23 @@ function logout() {
 }
 
 // Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Enable all features for paid users on AI Dashboard
     window.pageAccess = 'paid';
     if (typeof applyAccessControl === 'function') {
         applyAccessControl();
+    }
+    
+    // Initialize session and validate authentication
+    if (typeof SessionManager !== 'undefined') {
+        const sessionManager = new SessionManager();
+        const isAuthenticated = await sessionManager.initializeSession();
+        
+        if (!isAuthenticated) {
+            return; // Session manager will handle redirect
+        }
+        
+        currentUser = sessionManager.getCurrentUser();
     }
     
     // Initialize components
@@ -612,7 +624,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (logoutLink) {
         logoutLink.addEventListener('click', function(e) {
             e.preventDefault();
-            logout();
+            if (typeof SessionManager !== 'undefined') {
+                const sessionManager = new SessionManager();
+                sessionManager.logout();
+            } else {
+                logout();
+            }
         });
     }
 });

@@ -7,24 +7,103 @@ let aiPermissionsEnabled = false;
 // Mark this page as free; disable paid-only features visually
 window.pageAccess = 'free';
 
-// Initialize currentUser from localStorage immediately
-function initializeCurrentUser() {
-    const storedUser = localStorage.getItem('user');
+// Session persistence and validation
+async function validateSession() {
     const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
     
-    if (storedUser && token) {
-        try {
-            currentUser = JSON.parse(storedUser);
-            console.log('Current user initialized from localStorage:', currentUser);
-        } catch (error) {
-            console.error('Error parsing stored user data:', error);
-            currentUser = null;
+    // If no token or user data, redirect to login
+    if (!token || !storedUser) {
+        console.log('No valid session found, redirecting to login');
+        redirectToLogin();
+        return false;
+    }
+    
+    try {
+        // Parse stored user data
+        currentUser = JSON.parse(storedUser);
+        
+        // Skip backend validation for demo users
+        if (currentUser.id === 'demo-user-123' || token === 'demo-token-123') {
+            console.log('Demo user session validated');
+            return true;
         }
+        
+        // Validate token with backend
+        const response = await fetch('/.netlify/functions/api/auth/profile', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-cache'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.user) {
+                // Update currentUser with fresh data from backend
+                currentUser = data.user;
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                console.log('Session validated successfully');
+                return true;
+            }
+        }
+        
+        // Token is invalid or expired
+        console.log('Session validation failed, clearing session');
+        clearSession();
+        redirectToLogin();
+        return false;
+        
+    } catch (error) {
+        console.error('Session validation error:', error);
+        // On network error, use cached user data but log the issue
+        if (currentUser) {
+            console.log('Using cached user data due to network error');
+            return true;
+        }
+        
+        // If no cached data and network error, redirect to login
+        clearSession();
+        redirectToLogin();
+        return false;
     }
 }
 
-// Initialize user immediately when script loads
-initializeCurrentUser();
+// Clear all session data
+function clearSession() {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    currentUser = null;
+    console.log('Session cleared');
+}
+
+// Redirect to login page
+function redirectToLogin() {
+    // Prevent infinite redirects
+    if (window.location.pathname.includes('login') || window.location.pathname.includes('index')) {
+        return;
+    }
+    
+    console.log('Redirecting to login page');
+    window.location.href = 'login.html';
+}
+
+// Initialize session on page load
+async function initializeSession() {
+    console.log('Initializing session...');
+    
+    const isValidSession = await validateSession();
+    
+    if (isValidSession) {
+        console.log('Session initialized successfully');
+        return true;
+    }
+    
+    return false;
+}
 
 // Load user data
 async function loadUserData() {
@@ -487,17 +566,25 @@ async function generatePost() {
 
 // Logout function
 function logout() {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    window.location.href = 'index.html';
+    console.log('Logging out user...');
+    clearSession();
+    redirectToLogin();
 }
 
 // Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Apply access control
     if (typeof applyAccessControl === 'function') applyAccessControl();
     
-    // Load user data
+    // Initialize and validate session first
+    const sessionValid = await initializeSession();
+    
+    if (!sessionValid) {
+        // Session validation failed, user will be redirected
+        return;
+    }
+    
+    // Load user data only after session validation
     loadUserData();
     
     // Set up event listeners

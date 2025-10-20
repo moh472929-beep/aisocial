@@ -270,7 +270,19 @@ function logout() {
 }
 
 // Event listeners
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Initialize session and validate authentication
+    if (typeof SessionManager !== 'undefined') {
+        const sessionManager = new SessionManager();
+        const isAuthenticated = await sessionManager.initializeSession();
+        
+        if (!isAuthenticated) {
+            return; // Session manager will handle redirect
+        }
+        
+        currentUser = sessionManager.getCurrentUser();
+    }
+    
     loadUserData();
     
     // Save settings button
@@ -284,7 +296,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (logoutLink) {
         logoutLink.addEventListener('click', function(e) {
             e.preventDefault();
-            logout();
+            if (typeof SessionManager !== 'undefined') {
+                const sessionManager = new SessionManager();
+                sessionManager.logout();
+            } else {
+                logout();
+            }
         });
     }
 });
