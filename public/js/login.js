@@ -1,5 +1,44 @@
 // Login page functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is already logged in and redirect to dashboard
+    console.log('Login page: Checking for existing session...');
+    
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+        console.log('Login page: Found existing session, validating...');
+        
+        // Validate session with backend
+        fetch('/.netlify/functions/api/auth/profile', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Login page: Session is valid, redirecting to dashboard...');
+                window.location.href = 'dashboard.html';
+                return;
+            } else {
+                console.log('Login page: Session is invalid, clearing and staying on login page');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('refreshToken');
+            }
+        })
+        .catch(error => {
+            console.log('Login page: Session validation error, clearing session');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('refreshToken');
+        });
+    } else {
+        console.log('Login page: No existing session found, staying on login page');
+    }
+
     // Helper UI functions
     const showMsg = (id, text) => { 
         const el = document.getElementById(id); 
