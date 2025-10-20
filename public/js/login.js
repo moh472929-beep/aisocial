@@ -10,7 +10,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Login page: Found existing session, validating...');
         
         // Validate session with backend
-        fetch('/.netlify/functions/api/auth/profile', {
+        // Use environment-appropriate endpoint
+        const apiEndpoint = '/api/auth/profile';
+            
+        fetch(apiEndpoint, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,

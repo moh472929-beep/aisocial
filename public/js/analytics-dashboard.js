@@ -15,7 +15,12 @@ async function loadUserData() {
     }
     
     try {
-        const response = await fetch('/.netlify/functions/api/auth/profile', {
+        // Use environment-appropriate endpoint
+    const apiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? '/api/auth/profile' 
+        : '/.netlify/functions/api/auth/profile';
+        
+    const response = await fetch(apiEndpoint, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -63,11 +68,13 @@ async function loadAnalyticsData(period = 'daily') {
     document.getElementById('error-message').style.display = 'none';
     
     try {
-        // Fetch analytics data from backend
-        const response = await fetch(`/.netlify/functions/api/analytics/dashboard?period=${period}`, {
+        // Fetch analytics data from backend using unified endpoint
+        const response = await fetch(`/api/analytics/dashboard?period=${period}`, {
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-cache'
         });
         
         const data = await response.json();
@@ -76,7 +83,7 @@ async function loadAnalyticsData(period = 'daily') {
             analyticsData = data.analytics;
             updateDashboard();
         } else {
-            showError(data.error);
+            showError(data.error || 'فشل تحميل البيانات');
         }
     } catch (error) {
         console.error('Error loading analytics data:', error);

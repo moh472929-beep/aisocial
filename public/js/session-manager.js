@@ -23,7 +23,10 @@ class SessionManager {
             this.currentUser = JSON.parse(storedUser);
             
             // Validate token with backend
-            const response = await fetch('/.netlify/functions/api/auth/profile', {
+            // Use environment-appropriate endpoint
+            const apiEndpoint = '/api/auth/profile';
+            
+            const response = await fetch(apiEndpoint, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -128,7 +131,10 @@ class SessionManager {
         }
 
         try {
-            const response = await fetch('/.netlify/functions/api/auth/profile', {
+            // Use environment-appropriate endpoint
+            const apiEndpoint = '/api/auth/profile';
+            
+            const response = await fetch(apiEndpoint, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,

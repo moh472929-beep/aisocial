@@ -346,13 +346,37 @@
         <main class="main-content">
             <div class="dashboard-header">
                 <h1 class="dashboard-title" data-translate="trendingTopicsTitle">المواضيع الشائعة في منطقتك</h1>
-                <div class="refresh-controls">
-                    <button id="refresh-topics" class="btn btn-primary" data-translate="refreshButton">
-                        <i class="fas fa-sync"></i> <span data-translate="refreshTopics">تحديث المواضيع</span>
-                    </button>
-                    <button id="fetch-topics" class="btn btn-secondary" data-translate="fetchNewTopics">
-                        <i class="fas fa-download"></i> <span data-translate="fetchNewTopics">جلب مواضيع جديدة</span>
-                    </button>
+                <div class="header-controls">
+                    <!-- Language Selector -->
+                    <div class="language-selector">
+                        <div class="selected-language">
+                            <img src="flags/ar.svg" alt="العربية" id="selected-flag">
+                            <span id="selected-language-text">العربية</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="language-dropdown">
+                            <div class="language-option" data-lang="ar">
+                                <img src="flags/ar.svg" alt="العربية">
+                                <span>العربية</span>
+                            </div>
+                            <div class="language-option" data-lang="en">
+                                <img src="flags/en.svg" alt="English">
+                                <span>English</span>
+                            </div>
+                            <div class="language-option" data-lang="ru">
+                                <img src="flags/ru.svg" alt="Русский">
+                                <span>Русский</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="refresh-controls">
+                        <button id="refresh-topics" class="btn btn-primary" data-translate="refreshButton">
+                            <i class="fas fa-sync"></i> <span data-translate="refreshTopics">تحديث المواضيع</span>
+                        </button>
+                        <button id="fetch-topics" class="btn btn-secondary" data-translate="fetchNewTopics">
+                            <i class="fas fa-download"></i> <span data-translate="fetchNewTopics">جلب مواضيع جديدة</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             

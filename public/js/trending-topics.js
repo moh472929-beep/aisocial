@@ -15,7 +15,12 @@ async function loadUserData() {
     }
     
     try {
-        const response = await fetch('/.netlify/functions/api/auth/profile', {
+        // Use environment-appropriate endpoint
+    const apiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? '/api/auth/profile' 
+        : '/.netlify/functions/api/auth/profile';
+        
+    const response = await fetch(apiEndpoint, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

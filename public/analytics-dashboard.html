@@ -88,6 +88,12 @@
             color: var(--primary-color);
         }
         
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
         .time-filter {
             display: flex;
             gap: 1rem;
@@ -362,16 +368,51 @@
         <main class="main-content">
             <div class="dashboard-header">
                 <h1 class="dashboard-title" data-translate="analyticsTitle">تحليلات الذكاء الاصطناعي</h1>
-                <div class="time-filter">
-                    <label for="time-period" data-translate="timePeriodLabel">الفترة الزمنية:</label>
-                    <select id="time-period">
-                        <option value="daily" data-translate="dailyOption">يومي</option>
-                        <option value="weekly" data-translate="weeklyOption">أسبوعي</option>
-                        <option value="monthly" data-translate="monthlyOption">شهري</option>
-                    </select>
-                    <button id="refresh-analytics" class="btn btn-primary" data-translate="refreshButton">
-                        <i class="fas fa-sync"></i> تحديث
-                    </button>
+                <div class="header-controls">
+                    <div class="language-selector">
+                        <div class="selected-language">
+                            <img src="flags/ar.svg" alt="العربية" class="flag-icon">
+                            <span data-translate="selectedLanguage">العربية</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="language-dropdown">
+                            <div class="language-option" data-lang="ar">
+                                <img src="flags/ar.svg" alt="العربية" class="flag-icon">
+                                <span data-translate="arabic">العربية</span>
+                            </div>
+                            <div class="language-option" data-lang="en">
+                                <img src="flags/en.svg" alt="English" class="flag-icon">
+                                <span data-translate="english">English</span>
+                            </div>
+                            <div class="language-option" data-lang="fr">
+                                <img src="flags/fr.svg" alt="French" class="flag-icon">
+                                <span data-translate="french">Français</span>
+                            </div>
+                            <div class="language-option" data-lang="de">
+                                <img src="flags/de.svg" alt="German" class="flag-icon">
+                                <span data-translate="german">Deutsch</span>
+                            </div>
+                            <div class="language-option" data-lang="es">
+                                <img src="flags/es.svg" alt="Spanish" class="flag-icon">
+                                <span data-translate="spanish">Español</span>
+                            </div>
+                            <div class="language-option" data-lang="ru">
+                                <img src="flags/ru.svg" alt="Russian" class="flag-icon">
+                                <span data-translate="russian">Русский</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="time-filter">
+                        <label for="time-period" data-translate="timePeriodLabel">الفترة الزمنية:</label>
+                        <select id="time-period">
+                            <option value="daily" data-translate="dailyOption">يومي</option>
+                            <option value="weekly" data-translate="weeklyOption">أسبوعي</option>
+                            <option value="monthly" data-translate="monthlyOption">شهري</option>
+                        </select>
+                        <button id="refresh-analytics" class="btn btn-primary" data-translate="refreshButton">
+                            <i class="fas fa-sync"></i> تحديث
+                        </button>
+                    </div>
                 </div>
             </div>
             
