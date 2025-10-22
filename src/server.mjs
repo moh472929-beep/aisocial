@@ -25,10 +25,12 @@ const parseOrigins = () => {
     .map((s) => s.trim())
     .filter(Boolean);
 
+  // Get the current deployment URL from Render environment variables
+  const renderUrl = process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL;
+  
   const prodDefaults = [
-    process.env.RENDER_EXTERNAL_URL,
-    process.env.BASE_URL,
-    "https://aisocial-aahn.onrender.com",
+    renderUrl,
+    "https://aisocial-aahn.onrender.com", // Fallback for the known Render URL
   ].filter(Boolean);
 
   const devDefaults = [
@@ -41,32 +43,50 @@ const parseOrigins = () => {
   ];
 
   const base = process.env.NODE_ENV === "production" ? prodDefaults : devDefaults;
-  return Array.from(new Set([...envList, ...base]));
+  const origins = Array.from(new Set([...envList, ...base]));
+  
+  logger.info(`CORS: Configured allowed origins: ${JSON.stringify(origins)}`);
+  return origins;
 };
 
 const allowedOrigins = parseOrigins();
 
 const corsOptions = {
   origin(origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, server-side)
-    if (!origin) return callback(null, true);
+    // Log the incoming origin for debugging
+    logger.info(`CORS: Request from origin: ${origin || 'no-origin'}`);
+    
+    // Allow requests with no origin (same-origin requests, mobile apps, curl, server-side)
+    if (!origin) {
+      logger.info('CORS: Allowing request with no origin (same-origin or server-side)');
+      return callback(null, true);
+    }
 
+    // Check if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
+      logger.info(`CORS: Allowing origin ${origin} (found in allowed list)`);
       return callback(null, true);
     }
 
-    // Allow same-origin explicitly based on configured host
-    const serverOrigin = process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL || null;
-    if (serverOrigin && origin === serverOrigin) {
+    // Additional check for Render deployment URL variations
+    const renderUrl = process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL;
+    if (renderUrl && origin === renderUrl) {
+      logger.info(`CORS: Allowing origin ${origin} (matches Render URL)`);
       return callback(null, true);
     }
 
-    logger.warn(`CORS: Blocked origin ${origin}. Allowed: ${JSON.stringify(allowedOrigins)}`);
+    // Check for same-origin requests on production domain
+    if (process.env.NODE_ENV === "production" && origin === "https://aisocial-aahn.onrender.com") {
+      logger.info(`CORS: Allowing production domain ${origin}`);
+      return callback(null, true);
+    }
+
+    logger.warn(`CORS: Blocked origin ${origin}. Allowed origins: ${JSON.stringify(allowedOrigins)}`);
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept", "X-Requested-With"],
   optionsSuccessStatus: 204, // Use 204 for preflight compatibility
 };
 
