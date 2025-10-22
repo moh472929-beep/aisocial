@@ -12,20 +12,15 @@ class SessionManager {
         const token = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
         
-        // If no token or user data, session is invalid
-        if (!token || !storedUser) {
-            console.log('No valid session found');
+        // Require only the token; user will be refreshed from backend
+        if (!token) {
+            console.log('No token found');
             return false;
         }
         
         try {
-            // Parse stored user data
-            this.currentUser = JSON.parse(storedUser);
-            
-            // Validate token with backend
-            // Use environment-appropriate endpoint
+            // Always validate with backend and refresh user data
             const apiEndpoint = '/api/auth/profile';
-            
             const response = await fetch(apiEndpoint, {
                 method: 'GET',
                 headers: {
@@ -38,24 +33,36 @@ class SessionManager {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.user) {
-                    // Update currentUser with fresh data from backend
-                    this.currentUser = data.user;
+                    // Sanitize and persist minimal user fields to avoid stale/huge objects
+                    const userSafe = {
+                        userId: data.user.userId || data.user._id || data.user.id,
+                        email: data.user.email,
+                        fullName: data.user.fullName || data.user.name,
+                        subscription: data.user.subscription,
+                        postsRemaining: data.user.postsRemaining || 0
+                    };
+                    this.currentUser = { ...data.user, ...userSafe };
                     localStorage.setItem('user', JSON.stringify(this.currentUser));
-                    console.log('Session validated successfully');
+                    console.log('Session validated and user refreshed');
                     return true;
                 }
             }
             
-            // Token is invalid or expired
+            // Token invalid or expired
             console.log('Session validation failed');
             return false;
             
         } catch (error) {
             console.error('Session validation error:', error);
-            // On network error, use cached user data if available
-            if (this.currentUser) {
-                console.log('Using cached user data due to network error');
-                return true;
+            // On network error, use cached user if available
+            if (storedUser) {
+                try {
+                    this.currentUser = JSON.parse(storedUser);
+                    console.log('Using cached user due to network error');
+                    return true;
+                } catch (e) {
+                    console.warn('Cached user parse failed');
+                }
             }
             
             return false;
