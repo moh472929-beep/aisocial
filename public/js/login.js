@@ -133,9 +133,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 // CRITICAL: Preserve language preference during login
                 const currentLanguage = localStorage.getItem('preferredLanguage');
                 
-                localStorage.setItem('user', user ? JSON.stringify(user) : '');
+                // Ensure access token exists before proceeding
+                if (!accessToken) {
+                    console.error('🔐 [LOGIN] No access token in response');
+                    showMsg('error', 'لم يتم استلام رمز الوصول من الخادم. يرجى المحاولة مرة أخرى.');
+                    return;
+                }
+                
+                // Synchronously persist auth data
                 localStorage.setItem('token', accessToken);
-                if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+                if (user) {
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+                if (refreshToken) {
+                    localStorage.setItem('refreshToken', refreshToken);
+                }
+                localStorage.setItem('sessionTimestamp', String(Date.now()));
+                localStorage.setItem('lastActivity', String(Date.now()));
+                localStorage.setItem('sessionReady', 'true');
                 
                 // Restore language preference if it was set
                 if (currentLanguage) {
@@ -151,13 +166,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     preservedLanguage: currentLanguage
                 });
                 
+                // If user is not yet stored, refresh profile using the token
+                if (!storedUser && typeof window.sessionManager !== 'undefined') {
+                    console.log('🔐 [LOGIN] User not present, refreshing profile via session manager...');
+                    try {
+                        const ok = await window.sessionManager.validateSession();
+                        if (ok && window.sessionManager.currentUser) {
+                            localStorage.setItem('user', JSON.stringify(window.sessionManager.currentUser));
+                        }
+                    } catch (e) {
+                        console.warn('🔐 [LOGIN] Session validation after login failed:', e);
+                    }
+                }
+                
                 showMsg('success', 'تم تسجيل الدخول بنجاح! جاري التوجيه...');
                 
-                // Increased delay to ensure localStorage operations complete
-                setTimeout(() => { 
-                    console.log('Login: Redirecting to dashboard...');
-                    window.location.href = 'dashboard.html'; 
-                }, 1500); // Increased from 1200ms to 1500ms
+                // Redirect immediately after ensuring storage
+                console.log('Login: Redirecting to dashboard...');
+                window.location.href = 'dashboard.html';
             } else {
                 if (res.status === 429) {
                     showMsg('error', 'عدد محاولات تسجيل الدخول كبير، يرجى الانتظار قليلاً');

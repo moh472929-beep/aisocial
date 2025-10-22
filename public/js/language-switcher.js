@@ -11,20 +11,30 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Language Switcher: Detected protected page, waiting for session validation...');
         
         // Wait for session manager to be available and session to be validated
+        let sessionWaitAttempts = 0;
+        const maxAttempts = 50; // ~5s at 100ms
         const waitForSession = () => {
-            if (typeof window.sessionManager !== 'undefined' && window.sessionManager.isAuthenticated()) {
-                console.log('Language Switcher: Session validated, initializing language system...');
+            const hasToken = !!localStorage.getItem('token');
+            const sessionReady = localStorage.getItem('sessionReady') === 'true';
+            const mgrReady = typeof window.sessionManager !== 'undefined' && window.sessionManager.isAuthenticated();
+            
+            if (mgrReady || (hasToken && sessionReady)) {
+                console.log('Language Switcher: Session confirmed. Initializing language system...');
                 initializeLanguageSystem();
-            } else if (typeof window.sessionManager !== 'undefined' && window.sessionManager.isInitialized === false) {
-                // Session manager exists but not initialized yet, wait a bit more
-                setTimeout(waitForSession, 100);
-            } else {
-                // Fallback: initialize after a reasonable delay
-                setTimeout(() => {
-                    console.log('Language Switcher: Fallback initialization after delay...');
-                    initializeLanguageSystem();
-                }, 500);
+                return;
             }
+            
+            sessionWaitAttempts++;
+            if (sessionWaitAttempts >= maxAttempts) {
+                // As a safe fallback, allow initialization if token exists, even if sessionReady not set
+                if (hasToken) {
+                    console.warn('Language Switcher: Max wait reached; token detected. Proceeding with init.');
+                    initializeLanguageSystem();
+                    return;
+                }
+                console.warn('Language Switcher: Session not ready yet; continuing to wait...');
+            }
+            setTimeout(waitForSession, 100);
         };
         
         // Start waiting for session
@@ -39,6 +49,16 @@ function initializeLanguageSystem() {
     // Prevent duplicate initialization
     if (window.languageSystemInitialized) {
         console.log('Language Switcher: Already initialized, skipping...');
+        return;
+    }
+    
+    // Extra guard: do not initialize on protected pages until token exists
+    const onProtectedPage = window.location.pathname.includes('dashboard') || 
+                            window.location.pathname.includes('ai-dashboard') ||
+                            window.location.pathname.includes('analytics') ||
+                            window.location.pathname.includes('autoresponse');
+    if (onProtectedPage && !localStorage.getItem('token')) {
+        console.warn('Language Switcher: Token not detected yet; deferring initialization.');
         return;
     }
     
@@ -115,6 +135,7 @@ function initializeLanguageSystem() {
             refreshToken: localStorage.getItem('refreshToken'),
             preferredLanguage: localStorage.getItem('preferredLanguage'),
             sessionTimestamp: localStorage.getItem('sessionTimestamp'),
+            sessionReady: localStorage.getItem('sessionReady'),
             // Preserve any other session-related data
             lastActivity: localStorage.getItem('lastActivity'),
             userPreferences: localStorage.getItem('userPreferences')
@@ -124,7 +145,8 @@ function initializeLanguageSystem() {
             hasUser: !!preservedData.user,
             hasToken: !!preservedData.token,
             hasRefreshToken: !!preservedData.refreshToken,
-            currentLang: preservedData.preferredLanguage
+            currentLang: preservedData.preferredLanguage,
+            sessionReady: preservedData.sessionReady === 'true'
         });
         
         // Add transition effect to all text elements
