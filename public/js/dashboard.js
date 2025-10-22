@@ -11,9 +11,15 @@ window.pageAccess = 'free';
 document.addEventListener('DOMContentLoaded', async function() {
     // CRITICAL: Initialize session FIRST before any other operations
     console.log('Dashboard: Starting initialization...');
+    console.log('Dashboard: localStorage contents:', {
+        hasToken: !!localStorage.getItem('token'),
+        hasUser: !!localStorage.getItem('user'),
+        tokenLength: localStorage.getItem('token')?.length || 0
+    });
     
     // Use the global session manager for consistency
     if (typeof window.sessionManager !== 'undefined') {
+        console.log('Dashboard: SessionManager found, initializing session...');
         const isAuthenticated = await window.sessionManager.initializeSession();
         
         if (!isAuthenticated) {
@@ -23,7 +29,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         currentUser = window.sessionManager.getCurrentUser();
-        console.log('Dashboard: Session validated successfully');
+        console.log('Dashboard: Session validated successfully, user:', {
+            email: currentUser?.email,
+            fullName: currentUser?.fullName
+        });
     } else {
         console.error('Dashboard: SessionManager not available');
         window.location.href = 'login.html';

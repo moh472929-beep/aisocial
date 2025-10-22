@@ -12,15 +12,23 @@ class SessionManager {
         const token = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
         
+        console.log('SessionManager: Starting validation...', {
+            hasToken: !!token,
+            hasStoredUser: !!storedUser,
+            tokenLength: token ? token.length : 0
+        });
+        
         // Require only the token; user will be refreshed from backend
         if (!token) {
-            console.log('No token found');
+            console.log('SessionManager: No token found in localStorage');
             return false;
         }
         
         try {
             // Always validate with backend and refresh user data
             const apiEndpoint = '/api/auth/profile';
+            console.log('SessionManager: Calling API endpoint:', apiEndpoint);
+            
             const response = await fetch(apiEndpoint, {
                 method: 'GET',
                 headers: {
@@ -30,8 +38,16 @@ class SessionManager {
                 cache: 'no-cache'
             });
             
+            console.log('SessionManager: API response status:', response.status);
+            
             if (response.ok) {
                 const data = await response.json();
+                console.log('SessionManager: API response data:', {
+                    success: data.success,
+                    hasUser: !!data.user,
+                    userEmail: data.user?.email
+                });
+                
                 if (data.success && data.user) {
                     // Sanitize and persist minimal user fields to avoid stale/huge objects
                     const userSafe = {
@@ -43,25 +59,31 @@ class SessionManager {
                     };
                     this.currentUser = { ...data.user, ...userSafe };
                     localStorage.setItem('user', JSON.stringify(this.currentUser));
-                    console.log('Session validated and user refreshed');
+                    console.log('SessionManager: Session validated and user refreshed successfully');
                     return true;
+                } else {
+                    console.log('SessionManager: API response invalid - missing success or user');
                 }
+            } else {
+                console.log('SessionManager: API response not OK, status:', response.status);
+                const errorText = await response.text();
+                console.log('SessionManager: Error response:', errorText);
             }
             
             // Token invalid or expired
-            console.log('Session validation failed');
+            console.log('SessionManager: Session validation failed');
             return false;
             
         } catch (error) {
-            console.error('Session validation error:', error);
+            console.error('SessionManager: Session validation error:', error);
             // On network error, use cached user if available
             if (storedUser) {
                 try {
                     this.currentUser = JSON.parse(storedUser);
-                    console.log('Using cached user due to network error');
+                    console.log('SessionManager: Using cached user due to network error');
                     return true;
                 } catch (e) {
-                    console.warn('Cached user parse failed');
+                    console.warn('SessionManager: Cached user parse failed:', e);
                 }
             }
             
