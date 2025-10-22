@@ -18,12 +18,40 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://aisocial-aahn.onrender.com'] 
-    : ['http://localhost:3000', 'http://localhost:10000', 'http://127.0.0.1:3000', 'http://127.0.0.1:10000'],
-  credentials: true
-}));
+// Enhanced CORS configuration for production and development
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = process.env.NODE_ENV === 'production' 
+      ? [
+          'https://aisocial-aahn.onrender.com',
+          'https://www.aisocial-aahn.onrender.com'
+        ]
+      : [
+          'http://localhost:3000',
+          'http://localhost:10000', 
+          'http://127.0.0.1:3000',
+          'http://127.0.0.1:10000',
+          'http://localhost:8080',
+          'http://127.0.0.1:8080'
+        ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS: Blocked origin ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+};
+
+app.use(cors(corsOptions));
 app.use(
   helmet({
     contentSecurityPolicy: {

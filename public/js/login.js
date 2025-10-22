@@ -14,31 +14,37 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
             
-        fetch(apiEndpoint, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log('Login page: Session is valid, redirecting to dashboard...');
-                window.location.href = 'dashboard.html';
-                return;
-            } else {
-                console.log('Login page: Session is invalid, clearing and staying on login page');
+            fetch(apiEndpoint, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Login page: Session is valid, redirecting to dashboard...');
+                    window.location.href = 'dashboard.html';
+                    return;
+                } else {
+                    console.log('Login page: Session is invalid, clearing and staying on login page');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('refreshToken');
+                }
+            })
+            .catch(error => {
+                console.log('Login page: Session validation error, clearing session');
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 localStorage.removeItem('refreshToken');
-            }
-        })
-        .catch(error => {
-            console.log('Login page: Session validation error, clearing session');
+            });
+        } catch (error) {
+            console.log('Login page: Error during session validation setup:', error);
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('refreshToken');
-        });
+        }
     } else {
         console.log('Login page: No existing session found, staying on login page');
     }
@@ -87,25 +93,33 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.disabled = true;
             loading.style.display = 'block';
             
-            const ctrl = new AbortController();
-            const timer = setTimeout(() => ctrl.abort(), 15000);
+            // Use enhanced fetch with retry logic
+            const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/login');
+            console.log('🔐 [LOGIN] Attempting login to:', apiEndpoint);
             
-            const res = await fetch(CONFIG.getApiEndpoint('/api/auth/login'), {
+            const res = await CONFIG.fetchWithRetry(apiEndpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify(payload),
                 cache: 'no-cache',
-                credentials: 'same-origin',
-                signal: ctrl.signal
+                credentials: 'same-origin'
             });
             
-            clearTimeout(timer);
             loading.style.display = 'none';
             
             let body = {};
             try { 
-                body = await res.json(); 
-            } catch {}
+                const responseText = await res.text();
+                console.log('🔐 [LOGIN] Raw response:', responseText);
+                body = responseText ? JSON.parse(responseText) : {};
+            } catch (parseError) {
+                console.error('🔐 [LOGIN] Failed to parse response:', parseError);
+                showMsg('error', 'خطأ في تحليل استجابة الخادم');
+                return;
+            }
             
             const data = body && body.data ? body.data : body;
             
@@ -114,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const accessToken = data.accessToken || body.accessToken || body.token || '';
                 const refreshToken = data.refreshToken || body.refreshToken || '';
                 
-                console.log('Login: Storing authentication data...');
+                console.log('🔐 [LOGIN] Login successful, storing authentication data...');
                 
                 // CRITICAL: Preserve language preference during login
                 const currentLanguage = localStorage.getItem('preferredLanguage');

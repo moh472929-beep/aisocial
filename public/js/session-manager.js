@@ -5,6 +5,8 @@ class SessionManager {
     constructor() {
         this.currentUser = null;
         this.isInitialized = false;
+        this.retryCount = 0;
+        this.maxRetries = 3;
     }
 
     // Validate session with backend
@@ -15,7 +17,9 @@ class SessionManager {
         console.log('SessionManager: Starting validation...', {
             hasToken: !!token,
             hasStoredUser: !!storedUser,
-            tokenLength: token ? token.length : 0
+            tokenLength: token ? token.length : 0,
+            environment: CONFIG.IS_PRODUCTION ? 'production' : 'development',
+            apiBaseUrl: CONFIG.getApiBaseUrl()
         });
         
         // Require only the token; user will be refreshed from backend
@@ -29,11 +33,13 @@ class SessionManager {
             const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
             console.log('SessionManager: Calling API endpoint:', apiEndpoint);
             
-            const response = await fetch(apiEndpoint, {
+            // Use enhanced fetch with retry logic
+            const response = await CONFIG.fetchWithRetry(apiEndpoint, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 cache: 'no-cache'
             });
@@ -41,7 +47,15 @@ class SessionManager {
             console.log('SessionManager: API response status:', response.status);
             
             if (response.ok) {
-                const data = await response.json();
+                let data;
+                try {
+                    const responseText = await response.text();
+                    data = responseText ? JSON.parse(responseText) : {};
+                } catch (parseError) {
+                    console.error('SessionManager: Failed to parse response:', parseError);
+                    return false;
+                }
+                
                 console.log('SessionManager: API response data:', {
                     success: data.success,
                     hasUser: !!data.user,

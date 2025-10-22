@@ -2288,24 +2288,26 @@ function initializeLanguageSystem() {
             });
         }
         
-        // Update dashboard section titles
-        const sectionTitles = document.querySelectorAll('h2');
-        if (sectionTitles.length > 0) {
-            const sectionTranslations = {
-                en: ['Upcoming Posts', 'AI Post Generator', 'AI Assistant', 'AI Page Management Automation'],
-                ar: ['المنشورات القادمة', 'مولد منشورات الذكاء الاصطناعي', 'المساعد الذكي', 'أتمتة إدارة الصفحة بالذكاء الاصطناعي'],
-                fr: ['Publications à venir', 'Générateur de publications IA', 'Assistant IA', 'Automatisation de la gestion de page IA'],
-                de: ['Bevorstehende Beiträge', 'KI-Beitragsgenerator', 'KI-Assistent', 'KI-Seitenverwaltungsautomatisierung'],
-                es: ['Próximas publicaciones', 'Generador de publicaciones de IA', 'Asistente de IA', 'Automatización de gestión de página de IA'],
-                ru: ['Предстоящие посты', 'Генератор постов ИИ', 'ИИ-ассистент', 'Автоматизация управления страницами ИИ']
-            };
-            
-            const translations = sectionTranslations[lang] || sectionTranslations['ar'];
-            sectionTitles.forEach((title, index) => {
-                if (index < translations.length) {
-                    title.textContent = translations[index];
-                }
-            });
+        // Update dashboard section titles (only for dashboard page)
+        if (window.location.pathname.includes('dashboard.html') || window.location.pathname === '/dashboard.html') {
+            const sectionTitles = document.querySelectorAll('h2');
+            if (sectionTitles.length > 0) {
+                const sectionTranslations = {
+                    en: ['Upcoming Posts', 'AI Post Generator', 'AI Assistant', 'AI Page Management Automation'],
+                    ar: ['المنشورات القادمة', 'مولد منشورات الذكاء الاصطناعي', 'المساعد الذكي', 'أتمتة إدارة الصفحة بالذكاء الاصطناعي'],
+                    fr: ['Publications à venir', 'Générateur de publications IA', 'Assistant IA', 'Automatisation de la gestion de page IA'],
+                    de: ['Bevorstehende Beiträge', 'KI-Beitragsgenerator', 'KI-Assistent', 'KI-Seitenverwaltungsautomatisierung'],
+                    es: ['Próximas publicaciones', 'Generador de publicaciones de IA', 'Asistente de IA', 'Automatización de gestión de página de IA'],
+                    ru: ['Предстоящие посты', 'Генератор постов ИИ', 'ИИ-ассистент', 'Автоматизация управления страницами ИИ']
+                };
+                
+                const translations = sectionTranslations[lang] || sectionTranslations['ar'];
+                sectionTitles.forEach((title, index) => {
+                    if (index < translations.length) {
+                        title.textContent = translations[index];
+                    }
+                });
+            }
         }
     }
     
