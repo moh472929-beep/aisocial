@@ -388,6 +388,85 @@ class EnhancedSessionManager {
     }
 
     /**
+     * Restore session state from backup or storage
+     */
+    restoreSessionState(backupData = null) {
+        try {
+            if (backupData) {
+                // Restore from provided backup
+                this.sessionData = {
+                    user: backupData.user,
+                    token: backupData.token,
+                    refreshToken: backupData.refreshToken
+                };
+                this.saveToStorage();
+                console.info('Session restored from backup data');
+                return true;
+            } else {
+                // Restore from storage
+                this.loadSessionFromStorage();
+                console.info('Session restored from storage');
+                return this.isAuthenticated();
+            }
+        } catch (error) {
+            console.error('Failed to restore session state:', error);
+            this.handleSessionError(error);
+            return false;
+        }
+    }
+
+    /**
+     * Handle session-related errors
+     */
+    handleSessionError(error, context = 'unknown') {
+        console.error(`Session error in ${context}:`, error);
+        
+        // Log error details for debugging
+        const errorInfo = {
+            message: error.message || 'Unknown error',
+            context: context,
+            timestamp: new Date().toISOString(),
+            sessionState: {
+                hasToken: !!this.sessionData.token,
+                hasUser: !!this.sessionData.user,
+                isLocked: this.isLocked
+            }
+        };
+        
+        console.warn('Session error details:', errorInfo);
+        
+        // Handle specific error types
+        if (error.message && error.message.includes('401')) {
+            // Unauthorized - clear session
+            this.clearSession();
+        } else if (error.message && error.message.includes('network')) {
+            // Network error - keep session but mark as offline
+            console.info('Network error detected, maintaining session for offline use');
+        } else if (error.message && error.message.includes('storage')) {
+            // Storage error - try alternative storage
+            console.warn('Storage error, attempting recovery');
+            try {
+                this.loadSessionFromStorage();
+            } catch (recoveryError) {
+                console.error('Session recovery failed:', recoveryError);
+                this.clearSession();
+            }
+        }
+        
+        // Emit custom event for error handling
+        window.dispatchEvent(new CustomEvent('sessionError', {
+            detail: errorInfo
+        }));
+    }
+
+    /**
+     * Check if session is currently locked
+     */
+    isSessionLocked() {
+        return this.isLocked;
+    }
+
+    /**
      * Destroy the session manager
      */
     destroy() {

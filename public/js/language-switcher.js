@@ -7,11 +7,28 @@ document.addEventListener('DOMContentLoaded', function() {
                            window.location.pathname.includes('autoresponse');
     
     if (isProtectedPage) {
-        // For protected pages, delay language initialization to allow session validation first
+        // For protected pages, wait for session validation to complete
         console.log('Language Switcher: Detected protected page, waiting for session validation...');
-        setTimeout(() => {
-            initializeLanguageSystem();
-        }, 50); // Reduced delay to minimize language switching issues
+        
+        // Wait for session manager to be available and session to be validated
+        const waitForSession = () => {
+            if (typeof window.sessionManager !== 'undefined' && window.sessionManager.isAuthenticated()) {
+                console.log('Language Switcher: Session validated, initializing language system...');
+                initializeLanguageSystem();
+            } else if (typeof window.sessionManager !== 'undefined' && window.sessionManager.isInitialized === false) {
+                // Session manager exists but not initialized yet, wait a bit more
+                setTimeout(waitForSession, 100);
+            } else {
+                // Fallback: initialize after a reasonable delay
+                setTimeout(() => {
+                    console.log('Language Switcher: Fallback initialization after delay...');
+                    initializeLanguageSystem();
+                }, 500);
+            }
+        };
+        
+        // Start waiting for session
+        setTimeout(waitForSession, 100);
     } else {
         // For public pages, initialize immediately
         initializeLanguageSystem();
@@ -91,12 +108,24 @@ function initializeLanguageSystem() {
     function updateAllLanguageElements(lang) {
         console.log('Language Switcher: Updating language elements to:', lang);
         
-        // CRITICAL: Preserve authentication data during language change
-        const authData = {
+        // CRITICAL: Preserve ALL authentication and session data during language change
+        const preservedData = {
             user: localStorage.getItem('user'),
             token: localStorage.getItem('token'),
-            refreshToken: localStorage.getItem('refreshToken')
+            refreshToken: localStorage.getItem('refreshToken'),
+            preferredLanguage: localStorage.getItem('preferredLanguage'),
+            sessionTimestamp: localStorage.getItem('sessionTimestamp'),
+            // Preserve any other session-related data
+            lastActivity: localStorage.getItem('lastActivity'),
+            userPreferences: localStorage.getItem('userPreferences')
         };
+        
+        console.log('Language Switcher: Preserving session data:', {
+            hasUser: !!preservedData.user,
+            hasToken: !!preservedData.token,
+            hasRefreshToken: !!preservedData.refreshToken,
+            currentLang: preservedData.preferredLanguage
+        });
         
         // Add transition effect to all text elements
         const allTextElements = document.querySelectorAll('h1, h2, h3, h4, p, span, div, a, label, button, li, option, select, textarea');
@@ -132,12 +161,25 @@ function initializeLanguageSystem() {
         // Update auto-response dashboard specific content
         updateAutoResponseDashboardContent(lang);
         
-        // CRITICAL: Restore authentication data after language operations
-        if (authData.user) localStorage.setItem('user', authData.user);
-        if (authData.token) localStorage.setItem('token', authData.token);
-        if (authData.refreshToken) localStorage.setItem('refreshToken', authData.refreshToken);
+        // CRITICAL: Restore ALL authentication and session data after language operations
+        Object.keys(preservedData).forEach(key => {
+            if (preservedData[key] !== null && preservedData[key] !== undefined) {
+                localStorage.setItem(key, preservedData[key]);
+            }
+        });
         
-        console.log('Language Switcher: Language updated successfully, auth data preserved');
+        // Ensure session manager state is maintained if available
+        if (typeof window.sessionManager !== 'undefined' && preservedData.user) {
+            try {
+                window.sessionManager.currentUser = JSON.parse(preservedData.user);
+                window.sessionManager.isInitialized = true;
+                console.log('Language Switcher: Session manager state restored');
+            } catch (e) {
+                console.warn('Language Switcher: Failed to restore session manager state:', e);
+            }
+        }
+        
+        console.log('Language Switcher: Language updated successfully, all session data preserved and restored');
         
         // Remove transition effect after a short delay
         setTimeout(() => {

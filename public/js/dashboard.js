@@ -45,11 +45,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load user data only after session validation
     loadUserData();
     
-    // Initialize language system AFTER session is confirmed
-    if (typeof initializeLanguageSystem === 'function') {
-        console.log('Dashboard: Initializing language system...');
-        initializeLanguageSystem();
-    }
+    // REMOVED: Language system initialization from here
+    // Language system will be initialized by language-switcher.js after session validation
+    console.log('Dashboard: Session initialization complete, language system will initialize separately');
 
     // Set up AI chat functionality
     const aiChatInput = document.getElementById('ai-chat-input');

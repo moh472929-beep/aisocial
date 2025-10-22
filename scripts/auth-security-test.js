@@ -13,7 +13,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 
 // Configuration
-const API_URL = 'http://localhost:10000/api';
+const API_URL = 'http://localhost:3000/api';
 const TEST_EMAIL = `test${Date.now()}@example.com`;
 const TEST_USERNAME = `testuser${Date.now()}`;
 const STRONG_PASSWORD = `Test@${crypto.randomBytes(4).toString('hex')}123`;
@@ -62,9 +62,10 @@ async function runTests() {
     } catch (error) {
       const isPasswordPolicyError = 
         error.response && 
+        error.response.status === 400 &&
         error.response.data && 
         error.response.data.details && 
-        error.response.data.details.some(d => d.param === 'password');
+        error.response.data.details.some(d => d.path === 'password');
       
       recordTest('Password Policy Enforcement', isPasswordPolicyError, 
         isPasswordPolicyError ? null : 'Error was not related to password policy');

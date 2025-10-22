@@ -469,7 +469,76 @@ class EnhancedLanguageSwitcher {
     }
 }
 
-// Initialize the enhanced language switcher
+    /**
+     * Switch language with session preservation
+     */
+    async switchLanguage(newLanguage) {
+        return await this.changeLanguage(newLanguage);
+    }
+
+    /**
+     * Update UI elements based on current language
+     */
+    updateUI(language = null) {
+        const targetLanguage = language || this.currentLanguage;
+        this.updateAllLanguageElements(targetLanguage);
+        this.updateLanguageDisplay(targetLanguage);
+        this.setPageDirection(targetLanguage);
+    }
+
+    /**
+     * Handle errors during language switching
+     */
+    handleError(error, context = 'language switching') {
+        console.error(`Error during ${context}:`, error);
+        
+        // Show user-friendly error message
+        this.showErrorMessage(`Failed during ${context}. Please try again.`);
+        
+        // Emit error event for external handling
+        window.dispatchEvent(new CustomEvent('languageSwitchError', {
+            detail: { error, context }
+        }));
+        
+        // Try to recover by reverting to previous language
+        if (context === 'language switching' && this.currentLanguage) {
+            console.info('Attempting to recover by reverting to previous language');
+            setTimeout(() => {
+                this.updateUI(this.currentLanguage);
+            }, 1000);
+        }
+    }
+
+    /**
+     * Update text direction based on language
+     */
+    updateTextDirection(language) {
+        this.setPageDirection(language);
+        
+        // Update specific elements that need direction changes
+        const directionalElements = document.querySelectorAll('.text-content, .form-group, .card-body');
+        const isRTL = language === 'ar';
+        
+        directionalElements.forEach(element => {
+            element.style.direction = isRTL ? 'rtl' : 'ltr';
+            element.style.textAlign = isRTL ? 'right' : 'left';
+        });
+    }
+
+    /**
+     * Preserve session during language operations
+     */
+    async preserveSession() {
+        if (this.sessionManager && this.sessionManager.preserveSessionDuring) {
+            return await this.sessionManager.preserveSessionDuring(async () => {
+                // Session is preserved during this operation
+                return true;
+            });
+        }
+        return true;
+    }
+
+    // Initialize the enhanced language switcher
 window.enhancedLanguageSwitcher = new EnhancedLanguageSwitcher();
 
 // Export for module usage

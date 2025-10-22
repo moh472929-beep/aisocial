@@ -3,62 +3,142 @@
  * Replaces old session management with enhanced version across all pages
  */
 
-(function() {
-    'use strict';
-
-    // Configuration
-    const CONFIG = {
-        enableEnhancedSession: true,
-        enableEnhancedLanguage: true,
-        debugMode: false,
-        fallbackToOldSystem: true
-    };
+class SessionPersistenceIntegration {
+    constructor() {
+        this.config = {
+            enableEnhancedSession: true,
+            enableEnhancedLanguage: true,
+            debugMode: false,
+            fallbackToOldSystem: true
+        };
+        
+        this.isInitialized = false;
+        this.enhancedSessionManager = null;
+        this.enhancedLanguageSwitcher = null;
+    }
 
     // Debug logging
-    function debugLog(message, ...args) {
-        if (CONFIG.debugMode) {
+    debugLog(message, ...args) {
+        if (this.config.debugMode) {
             console.log('[Session Integration]', message, ...args);
         }
     }
 
     // Initialize enhanced systems
-    function initializeEnhancedSystems() {
-        debugLog('Initializing enhanced systems...');
+    initializeEnhancedSystems() {
+        this.debugLog('Initializing enhanced systems...');
 
         try {
             // Wait for enhanced session manager to be available
             if (window.enhancedSessionManager) {
-                debugLog('Enhanced Session Manager available');
+                this.debugLog('Enhanced Session Manager available');
+                this.enhancedSessionManager = window.enhancedSessionManager;
                 
                 // Replace old SessionManager references
-                replaceOldSessionManager();
+                this.replaceOldSessionManager();
                 
                 // Initialize enhanced language switcher if enabled
-                if (CONFIG.enableEnhancedLanguage && window.enhancedLanguageSwitcher) {
-                    debugLog('Enhanced Language Switcher available');
-                    replaceOldLanguageSwitcher();
+                if (this.config.enableEnhancedLanguage && window.enhancedLanguageSwitcher) {
+                    this.debugLog('Enhanced Language Switcher available');
+                    this.enhancedLanguageSwitcher = window.enhancedLanguageSwitcher;
+                    this.replaceOldLanguageSwitcher();
                 }
                 
                 // Set up page-specific integrations
-                setupPageSpecificIntegrations();
+                this.setupPageSpecificIntegrations();
                 
-                debugLog('Enhanced systems initialized successfully');
+                this.isInitialized = true;
+                this.debugLog('Enhanced systems initialized successfully');
             } else {
                 throw new Error('Enhanced Session Manager not available');
             }
         } catch (error) {
             console.error('Failed to initialize enhanced systems:', error);
             
-            if (CONFIG.fallbackToOldSystem) {
+            if (this.config.fallbackToOldSystem) {
                 console.warn('Falling back to old session management system');
-                initializeFallbackSystems();
+                this.initializeFallbackSystems();
             }
         }
     }
 
+    // Set up language switching with session preservation
+    setupLanguageSwitching() {
+        this.debugLog('Setting up language switching with session preservation');
+        
+        if (this.enhancedLanguageSwitcher && this.enhancedSessionManager) {
+            // Override language change to preserve session
+            const originalChangeLanguage = this.enhancedLanguageSwitcher.changeLanguage;
+            
+            this.enhancedLanguageSwitcher.changeLanguage = async (newLanguage) => {
+                return await this.enhancedSessionManager.preserveSessionDuring(async () => {
+                    return await originalChangeLanguage.call(this.enhancedLanguageSwitcher, newLanguage);
+                });
+            };
+            
+            this.debugLog('Language switching with session preservation set up');
+        }
+    }
+
+    // Set up session persistence across page operations
+    setupSessionPersistence() {
+        this.debugLog('Setting up session persistence');
+        
+        if (this.enhancedSessionManager) {
+            // Set up automatic session validation
+            this.enhancedSessionManager.validateSession();
+            
+            // Set up cross-tab synchronization
+            window.addEventListener('storage', (event) => {
+                if (['user', 'token', 'refreshToken'].includes(event.key)) {
+                    this.debugLog('Session data changed in another tab, synchronizing...');
+                    this.enhancedSessionManager.loadSessionFromStorage();
+                }
+            });
+            
+            this.debugLog('Session persistence set up');
+        }
+    }
+
+    // Handle language switch with session preservation
+    async handleLanguageSwitch(newLanguage) {
+        this.debugLog('Handling language switch with session preservation:', newLanguage);
+        
+        try {
+            if (this.enhancedSessionManager && this.enhancedLanguageSwitcher) {
+                await this.enhancedSessionManager.preserveSessionDuring(async () => {
+                    await this.enhancedLanguageSwitcher.switchLanguage(newLanguage);
+                });
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Language switch with session preservation failed:', error);
+            return false;
+        }
+    }
+
+    // Monitor session health
+    monitorSessionHealth() {
+        this.debugLog('Starting session health monitoring');
+        
+        if (this.enhancedSessionManager) {
+            // Check session health every 30 seconds
+            setInterval(() => {
+                if (this.enhancedSessionManager.isAuthenticated()) {
+                    this.enhancedSessionManager.validateSession(1).catch(error => {
+                        console.warn('Session health check failed:', error);
+                    });
+                }
+            }, 30000);
+            
+            this.debugLog('Session health monitoring started');
+        }
+    }
+
     // Replace old SessionManager with enhanced version
-    function replaceOldSessionManager() {
-        const enhancedManager = window.enhancedSessionManager;
+    replaceOldSessionManager() {
+        const enhancedManager = this.enhancedSessionManager;
         
         // Create compatibility layer for old SessionManager API
         window.SessionManager = {
@@ -83,16 +163,16 @@
             window.sessionManager = window.SessionManager;
         }
 
-        debugLog('Old SessionManager replaced with enhanced version');
+        this.debugLog('Old SessionManager replaced with enhanced version');
     }
 
     // Replace old language switcher functionality
-    function replaceOldLanguageSwitcher() {
+    replaceOldLanguageSwitcher() {
         // Disable old language switcher initialization
         const oldInitFunction = window.initializeLanguageSystem;
         if (oldInitFunction) {
             window.initializeLanguageSystem = function() {
-                debugLog('Old language system initialization blocked');
+                this.debugLog('Old language system initialization blocked');
                 // Do nothing - enhanced version will handle it
             };
         }
@@ -101,50 +181,50 @@
         const oldUpdateFunction = window.updateAllLanguageElements;
         if (oldUpdateFunction) {
             window.updateAllLanguageElements = async function(language) {
-                debugLog('Redirecting language update to enhanced system');
+                this.debugLog('Redirecting language update to enhanced system');
                 if (window.enhancedLanguageSwitcher) {
                     await window.enhancedLanguageSwitcher.changeLanguage(language);
                 } else {
                     // Fallback to old system
                     return oldUpdateFunction.call(this, language);
                 }
-            };
+            }.bind(this);
         }
 
-        debugLog('Old language switcher replaced with enhanced version');
+        this.debugLog('Old language switcher replaced with enhanced version');
     }
 
     // Set up page-specific integrations
-    function setupPageSpecificIntegrations() {
-        const currentPage = getCurrentPageType();
-        debugLog('Setting up integrations for page:', currentPage);
+    setupPageSpecificIntegrations() {
+        const currentPage = this.getCurrentPageType();
+        this.debugLog('Setting up integrations for page:', currentPage);
 
         switch (currentPage) {
             case 'login':
-                setupLoginPageIntegration();
+                this.setupLoginPageIntegration();
                 break;
             case 'dashboard':
-                setupDashboardIntegration();
+                this.setupDashboardIntegration();
                 break;
             case 'ai-dashboard':
-                setupAIDashboardIntegration();
+                this.setupAIDashboardIntegration();
                 break;
             case 'analytics':
-                setupAnalyticsIntegration();
+                this.setupAnalyticsIntegration();
                 break;
             case 'autoresponse':
-                setupAutoResponseIntegration();
+                this.setupAutoResponseIntegration();
                 break;
             case 'trending':
-                setupTrendingTopicsIntegration();
+                this.setupTrendingTopicsIntegration();
                 break;
             default:
-                setupCommonIntegrations();
+                this.setupCommonIntegrations();
         }
     }
 
     // Get current page type
-    function getCurrentPageType() {
+    getCurrentPageType() {
         const path = window.location.pathname.toLowerCase();
         
         if (path.includes('login')) return 'login';
@@ -159,19 +239,19 @@
     }
 
     // Page-specific integration functions
-    function setupLoginPageIntegration() {
-        debugLog('Setting up login page integration');
+    setupLoginPageIntegration() {
+        this.debugLog('Setting up login page integration');
         
         // Override login form submission to use enhanced session manager
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
             const originalSubmit = loginForm.onsubmit;
-            loginForm.onsubmit = async function(e) {
+            loginForm.onsubmit = async (e) => {
                 e.preventDefault();
                 
                 try {
                     // Use enhanced session manager for login
-                    const result = await performEnhancedLogin(
+                    const result = await this.performEnhancedLogin(
                         document.getElementById('username').value,
                         document.getElementById('password').value
                     );
@@ -179,28 +259,28 @@
                     if (result.success) {
                         window.location.href = 'dashboard.html';
                     } else {
-                        showLoginError(result.message);
+                        this.showLoginError(result.message);
                     }
                 } catch (error) {
                     console.error('Enhanced login failed:', error);
                     
                     // Fallback to original login if available
-                    if (originalSubmit && CONFIG.fallbackToOldSystem) {
+                    if (originalSubmit && this.config.fallbackToOldSystem) {
                         return originalSubmit.call(this, e);
                     }
                     
-                    showLoginError('Login failed. Please try again.');
+                    this.showLoginError('Login failed. Please try again.');
                 }
             };
         }
     }
 
-    function setupDashboardIntegration() {
-        debugLog('Setting up dashboard integration');
+    setupDashboardIntegration() {
+        this.debugLog('Setting up dashboard integration');
         
         // Ensure session validation on dashboard load
-        if (window.enhancedSessionManager) {
-            window.enhancedSessionManager.validateSession().then(isValid => {
+        if (this.enhancedSessionManager) {
+            this.enhancedSessionManager.validateSession().then(isValid => {
                 if (!isValid) {
                     window.location.href = 'login.html';
                 }
@@ -212,48 +292,48 @@
         logoutLinks.forEach(link => {
             link.addEventListener('click', async (e) => {
                 e.preventDefault();
-                await window.enhancedSessionManager.logout();
+                await this.enhancedSessionManager.logout();
             });
         });
     }
 
-    function setupAIDashboardIntegration() {
-        debugLog('Setting up AI dashboard integration');
-        setupDashboardIntegration(); // Common dashboard functionality
+    setupAIDashboardIntegration() {
+        this.debugLog('Setting up AI dashboard integration');
+        this.setupDashboardIntegration(); // Common dashboard functionality
     }
 
-    function setupAnalyticsIntegration() {
-        debugLog('Setting up analytics integration');
-        setupDashboardIntegration(); // Common dashboard functionality
+    setupAnalyticsIntegration() {
+        this.debugLog('Setting up analytics integration');
+        this.setupDashboardIntegration(); // Common dashboard functionality
     }
 
-    function setupAutoResponseIntegration() {
-        debugLog('Setting up auto-response integration');
-        setupDashboardIntegration(); // Common dashboard functionality
+    setupAutoResponseIntegration() {
+        this.debugLog('Setting up auto-response integration');
+        this.setupDashboardIntegration(); // Common dashboard functionality
     }
 
-    function setupTrendingTopicsIntegration() {
-        debugLog('Setting up trending topics integration');
-        setupDashboardIntegration(); // Common dashboard functionality
+    setupTrendingTopicsIntegration() {
+        this.debugLog('Setting up trending topics integration');
+        this.setupDashboardIntegration(); // Common dashboard functionality
     }
 
-    function setupCommonIntegrations() {
-        debugLog('Setting up common integrations');
+    setupCommonIntegrations() {
+        this.debugLog('Setting up common integrations');
         
         // Set up common logout functionality
         const logoutLinks = document.querySelectorAll('[href*="logout"], .logout-link');
         logoutLinks.forEach(link => {
             link.addEventListener('click', async (e) => {
                 e.preventDefault();
-                if (window.enhancedSessionManager) {
-                    await window.enhancedSessionManager.logout();
+                if (this.enhancedSessionManager) {
+                    await this.enhancedSessionManager.logout();
                 }
             });
         });
     }
 
     // Enhanced login function
-    async function performEnhancedLogin(username, password) {
+    async performEnhancedLogin(username, password) {
         try {
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
@@ -267,13 +347,13 @@
 
             if (response.ok && data.token) {
                 // Store session data using enhanced session manager
-                window.enhancedSessionManager.sessionData = {
+                this.enhancedSessionManager.sessionData = {
                     user: JSON.stringify(data.user),
                     token: data.token,
                     refreshToken: data.refreshToken
                 };
                 
-                window.enhancedSessionManager.saveToStorage();
+                this.enhancedSessionManager.saveToStorage();
                 
                 return { success: true };
             } else {
@@ -286,7 +366,7 @@
     }
 
     // Show login error
-    function showLoginError(message) {
+    showLoginError(message) {
         const errorElement = document.querySelector('.error-message') || 
                            document.querySelector('.alert-danger') ||
                            document.getElementById('error-message');
@@ -300,8 +380,8 @@
     }
 
     // Initialize fallback systems
-    function initializeFallbackSystems() {
-        debugLog('Initializing fallback systems');
+    initializeFallbackSystems() {
+        this.debugLog('Initializing fallback systems');
         
         // Re-enable old systems if enhanced versions fail
         if (window.initializeLanguageSystem) {
@@ -315,11 +395,11 @@
     }
 
     // Wait for required scripts to load
-    function waitForDependencies() {
+    waitForDependencies() {
         return new Promise((resolve) => {
             const checkDependencies = () => {
                 const hasEnhancedSession = !!window.enhancedSessionManager;
-                const hasEnhancedLanguage = !CONFIG.enableEnhancedLanguage || !!window.enhancedLanguageSwitcher;
+                const hasEnhancedLanguage = !this.config.enableEnhancedLanguage || !!window.enhancedLanguageSwitcher;
                 
                 if (hasEnhancedSession && hasEnhancedLanguage) {
                     resolve();
@@ -332,21 +412,28 @@
         });
     }
 
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', async () => {
-            await waitForDependencies();
-            initializeEnhancedSystems();
-        });
-    } else {
-        waitForDependencies().then(initializeEnhancedSystems);
+    // Initialize the integration
+    async initialize() {
+        await this.waitForDependencies();
+        this.initializeEnhancedSystems();
+        this.setupLanguageSwitching();
+        this.setupSessionPersistence();
+        this.monitorSessionHealth();
     }
+}
 
-    // Export for debugging
-    window.sessionIntegration = {
-        config: CONFIG,
-        reinitialize: initializeEnhancedSystems,
-        debugMode: (enabled) => { CONFIG.debugMode = enabled; }
-    };
+// Create global instance
+const sessionPersistenceIntegration = new SessionPersistenceIntegration();
 
-})();
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        sessionPersistenceIntegration.initialize();
+    });
+} else {
+    sessionPersistenceIntegration.initialize();
+}
+
+// Export for debugging and external access
+window.sessionPersistenceIntegration = sessionPersistenceIntegration;
+window.SessionPersistenceIntegration = SessionPersistenceIntegration;
