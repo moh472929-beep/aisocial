@@ -19,39 +19,59 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Enhanced CORS configuration for production and development
+const parseOrigins = () => {
+  const envList = (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const prodDefaults = [
+    process.env.RENDER_EXTERNAL_URL,
+    process.env.BASE_URL,
+    "https://aisocial-aahn.onrender.com",
+  ].filter(Boolean);
+
+  const devDefaults = [
+    "http://localhost:3000",
+    "http://localhost:10000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:10000",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+  ];
+
+  const base = process.env.NODE_ENV === "production" ? prodDefaults : devDefaults;
+  return Array.from(new Set([...envList, ...base]));
+};
+
+const allowedOrigins = parseOrigins();
+
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+  origin(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, server-side)
     if (!origin) return callback(null, true);
-    
-    const allowedOrigins = process.env.NODE_ENV === 'production' 
-      ? [
-          'https://aisocial-aahn.onrender.com',
-          'https://www.aisocial-aahn.onrender.com'
-        ]
-      : [
-          'http://localhost:3000',
-          'http://localhost:10000', 
-          'http://127.0.0.1:3000',
-          'http://127.0.0.1:10000',
-          'http://localhost:8080',
-          'http://127.0.0.1:8080'
-        ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`CORS: Blocked origin ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+
+    // Allow same-origin explicitly based on configured host
+    const serverOrigin = process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL || null;
+    if (serverOrigin && origin === serverOrigin) {
+      return callback(null, true);
+    }
+
+    logger.warn(`CORS: Blocked origin ${origin}. Allowed: ${JSON.stringify(allowedOrigins)}`);
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+  optionsSuccessStatus: 204, // Use 204 for preflight compatibility
 };
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(
   helmet({
     contentSecurityPolicy: {
