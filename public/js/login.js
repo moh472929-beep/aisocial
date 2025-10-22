@@ -7,11 +7,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const user = localStorage.getItem('user');
     
     if (token && user) {
-        console.log('Login page: Found existing session, validating...');
+        console.log('🔍 [LOGIN] Found existing session, validating...');
+        console.log('🔍 [LOGIN] Token:', token.substring(0, 20) + '...');
+        console.log('🔍 [LOGIN] User data:', user);
         
-        // Validate session with backend
-        // Use environment-appropriate endpoint
-        const apiEndpoint = '/api/auth/profile';
+        try {
+            const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
             
         fetch(apiEndpoint, {
             method: 'GET',
@@ -89,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const ctrl = new AbortController();
             const timer = setTimeout(() => ctrl.abort(), 15000);
             
-            const res = await fetch('/api/auth/login', {
+            const res = await fetch(CONFIG.getApiEndpoint('/api/auth/login'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),

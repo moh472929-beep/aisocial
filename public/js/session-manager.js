@@ -26,7 +26,7 @@ class SessionManager {
         
         try {
             // Always validate with backend and refresh user data
-            const apiEndpoint = '/api/auth/profile';
+            const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
             console.log('SessionManager: Calling API endpoint:', apiEndpoint);
             
             const response = await fetch(apiEndpoint, {
@@ -161,7 +161,7 @@ class SessionManager {
 
         try {
             // Use environment-appropriate endpoint
-            const apiEndpoint = '/api/auth/profile';
+            const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
             
             const response = await fetch(apiEndpoint, {
                 method: 'GET',

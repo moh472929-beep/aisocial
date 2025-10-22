@@ -101,10 +101,8 @@ async function validateSession() {
         currentUser = JSON.parse(storedUser);
         
         // Validate token with backend
-        // Use environment-appropriate endpoint
-        const apiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? '/api/auth/profile' 
-            : '/.netlify/functions/api/auth/profile';
+        // Use CONFIG for environment-appropriate endpoint
+        const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
             
         const response = await fetch(apiEndpoint, {
             method: 'GET',
