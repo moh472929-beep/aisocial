@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const ctrl = new AbortController();
             const timer = setTimeout(() => ctrl.abort(), 15000);
             
-            const res = await fetch('/api/auth/register', {
+            const res = await fetch(CONFIG.getApiEndpoint('/api/auth/register'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fullName, username, email, password }),

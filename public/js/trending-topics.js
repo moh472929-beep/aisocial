@@ -15,12 +15,10 @@ async function loadUserData() {
     }
     
     try {
-        // Use environment-appropriate endpoint
-    const apiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? '/api/auth/profile' 
-        : '/.netlify/functions/api/auth/profile';
+        // Use CONFIG for environment-appropriate endpoint
+        const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
         
-    const response = await fetch(apiEndpoint, {
+        const response = await fetch(apiEndpoint, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -67,7 +65,7 @@ async function loadTrendingTopics() {
     
     try {
         // Fetch trending topics from backend
-        const response = await fetch('/.netlify/functions/api/trending/list', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/trending/list'), {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -107,7 +105,7 @@ async function fetchNewTrendingTopics() {
     
     try {
         // Fetch new trending topics from backend
-        const response = await fetch('/.netlify/functions/api/trending/fetch', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/trending/fetch'), {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -146,7 +144,7 @@ async function generateAIContent(topicId) {
     
     try {
         // Generate AI content for the topic
-        const response = await fetch('/.netlify/functions/api/trending/generate', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/trending/generate'), {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -223,7 +221,7 @@ async function publishTopic(topicId) {
     
     try {
         // Publish the topic
-        const response = await fetch('/.netlify/functions/api/trending/publish', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/trending/publish'), {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

@@ -245,10 +245,8 @@ async function loadUserData() {
     }
     
     try {
-        // Use environment-appropriate endpoint
-        const apiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? '/api/auth/profile' 
-            : '/.netlify/functions/api/auth/profile';
+        // Use CONFIG for environment-appropriate endpoint
+        const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
             
         const response = await fetch(apiEndpoint, {
             headers: {
@@ -290,7 +288,7 @@ async function loadAIPermissions() {
     const token = localStorage.getItem('token');
     
     try {
-        const response = await fetch('/.netlify/functions/api/ai/permissions', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/ai/permissions'), {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -314,9 +312,9 @@ async function toggleAIPermissions() {
     const newStatus = checkbox.checked;
     
     try {
-        const endpoint = newStatus ? 
-            '/.netlify/functions/api/ai/permissions/enable' : 
-            '/.netlify/functions/api/ai/permissions/disable';
+        const endpoint = isEnable ? 
+            CONFIG.getApiEndpoint('/api/ai/permissions/enable') :
+            CONFIG.getApiEndpoint('/api/ai/permissions/disable');
         
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -350,7 +348,7 @@ async function loadUserPosts() {
     const token = localStorage.getItem('token');
     
     try {
-        const response = await fetch('/.netlify/functions/api/posts', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/posts'), {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -373,7 +371,7 @@ async function loadFacebookPages() {
     const token = localStorage.getItem('token');
     
     try {
-        const response = await fetch('/.netlify/functions/api/facebook/pages', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/facebook/pages'), {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

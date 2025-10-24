@@ -34,6 +34,7 @@ async function initializeRoutes() {
     const aiRoutes = require("./ai.js");
     const analyticsRoutes = require("./analytics.js");
     const autoResponseRoutes = require("./autoResponseController.js");
+    const paymentRoutes = require("./payment.js");
 
     // Verify routes are loaded correctly
     if (!authRoutes) throw new Error("Auth routes failed to load");
@@ -42,6 +43,7 @@ async function initializeRoutes() {
     if (!aiRoutes) throw new Error("AI routes failed to load");
     if (!analyticsRoutes) throw new Error("Analytics routes failed to load");
     if (!autoResponseRoutes) throw new Error("AutoResponse routes failed to load");
+    if (!paymentRoutes) throw new Error("Payment routes failed to load");
 
     // ربط الراوترات بالمسارات الخاصة بها
     router.use("/auth", authRoutes);
@@ -50,6 +52,7 @@ async function initializeRoutes() {
     router.use("/ai", aiRoutes);
     router.use("/analytics", analyticsRoutes);
     router.use("/autoresponse", autoResponseRoutes);
+    router.use("/payment", paymentRoutes);
 
     // مسار تجريبي للتأكد من عمل الـ API
     router.get("/", (req, res) => {
@@ -65,6 +68,7 @@ async function initializeRoutes() {
           "/ai",
           "/analytics",
           "/autoresponse",
+          "/payment (process, subscription)",
         ],
       });
     });
@@ -80,7 +84,7 @@ async function initializeRoutes() {
     });
 
     console.log("✅ All API routes initialized successfully");
-    console.log("📋 Available routes: /auth, /users, /facebook, /ai, /analytics, /autoresponse");
+    console.log("📋 Available routes: /auth, /users, /facebook, /ai, /analytics, /autoresponse, /payment");
     
   } catch (error) {
     console.error("❌ Critical error initializing API routes:", error);

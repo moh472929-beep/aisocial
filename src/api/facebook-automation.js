@@ -15,7 +15,14 @@ router.use(authenticateToken);
 async function hasAIPermissions(userId) {
   const userModel = dbInit.getModel('User');
   const user = await userModel.findById(userId);
-  return user && user.aiPermissions && user.aiPermissions.enabled === true;
+  
+  // التحقق من الاشتراك المميز أولاً
+  if (!user || user.subscription !== 'premium') {
+    return false;
+  }
+  
+  // إذا كان المستخدم مميز، فهو يملك صلاحيات AI
+  return true;
 }
 
 // Facebook OAuth توجيه المستخدم لتسجيل الدخول

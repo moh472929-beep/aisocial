@@ -23,8 +23,31 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => {
                 if (response.ok) {
-                    console.log('Login page: Session is valid, redirecting to dashboard...');
-                    window.location.href = 'dashboard.html';
+                    console.log('Login page: Session is valid, checking user subscription...');
+                    
+                    // Get user data to check subscription
+                    const userData = localStorage.getItem('user');
+                    if (userData) {
+                        try {
+                            const user = JSON.parse(userData);
+                            const userSubscription = user?.subscription || 'free';
+                            console.log('Login page: User subscription type:', userSubscription);
+                            
+                            if (userSubscription === 'premium' || userSubscription === 'paid') {
+                                console.log('Login page: Premium user, redirecting to AI dashboard...');
+                                window.location.href = 'ai-dashboard.html';
+                            } else {
+                                console.log('Login page: Free user, redirecting to regular dashboard...');
+                                window.location.href = 'dashboard.html';
+                            }
+                        } catch (e) {
+                            console.log('Login page: Error parsing user data, redirecting to dashboard...');
+                            window.location.href = 'dashboard.html';
+                        }
+                    } else {
+                        console.log('Login page: No user data found, redirecting to dashboard...');
+                        window.location.href = 'dashboard.html';
+                    }
                     return;
                 } else {
                     console.log('Login page: Session is invalid, clearing and staying on login page');
@@ -184,9 +207,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add a small delay to ensure all data is properly stored
                 await new Promise(resolve => setTimeout(resolve, 200));
                 
-                // Redirect immediately after ensuring storage
-                console.log('Login: Redirecting to dashboard...');
-                window.location.href = 'dashboard.html';
+                // Check if user is premium and redirect accordingly
+                const userSubscription = user?.subscription || 'free';
+                console.log('Login: User subscription type:', userSubscription);
+                
+                if (userSubscription === 'premium' || userSubscription === 'paid') {
+                    console.log('Login: Premium user detected, redirecting to AI dashboard...');
+                    window.location.href = 'ai-dashboard.html';
+                } else {
+                    console.log('Login: Free user, redirecting to regular dashboard...');
+                    window.location.href = 'dashboard.html';
+                }
             } else {
                 if (res.status === 429) {
                     showMsg('error', 'عدد محاولات تسجيل الدخول كبير، يرجى الانتظار قليلاً');

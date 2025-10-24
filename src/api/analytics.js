@@ -234,10 +234,12 @@ router.get('/dashboard', checkSubscription('premium'), async (req, res) => {
       });
     }
 
+    // Return empty analytics if no Facebook pages connected
     if (!user.facebook || !user.facebook.pages || user.facebook.pages.length === 0) {
       return res.json({
         success: true,
         analytics: [],
+        message: 'لا توجد صفحات فيسبوك متصلة'
       });
     }
 
@@ -260,15 +262,18 @@ router.get('/dashboard', checkSubscription('premium'), async (req, res) => {
       }
     }
 
+    // Return success even if no analytics data found
     res.json({
       success: true,
       analytics: analyticsData,
+      message: analyticsData.length === 0 ? 'لا توجد بيانات تحليلية متاحة' : 'تم جلب البيانات التحليلية بنجاح'
     });
   } catch (error) {
     console.error('Get dashboard analytics error:', error.response?.data || error.message);
     res.status(500).json({
       success: false,
       error: 'خطأ في جلب البيانات التحليلية',
+      details: error.message
     });
   }
 });

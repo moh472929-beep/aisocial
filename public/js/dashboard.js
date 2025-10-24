@@ -20,6 +20,24 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Add a small delay to ensure all scripts are loaded
     await new Promise(resolve => setTimeout(resolve, 100));
     
+    // Check if user is premium and should be redirected to AI dashboard
+    const userData = localStorage.getItem('user');
+    if (userData) {
+        try {
+            const user = JSON.parse(userData);
+            const userSubscription = user?.subscription || 'free';
+            console.log('Dashboard: User subscription type:', userSubscription);
+            
+            if (userSubscription === 'premium' || userSubscription === 'paid') {
+                console.log('Dashboard: Premium user detected, redirecting to AI dashboard...');
+                window.location.href = 'ai-dashboard.html';
+                return;
+            }
+        } catch (e) {
+            console.log('Dashboard: Error parsing user data, continuing with regular dashboard...');
+        }
+    }
+    
     // Use the global session manager for consistency
     if (typeof window.sessionManager !== 'undefined') {
         console.log('Dashboard: SessionManager found, initializing session...');
@@ -280,7 +298,7 @@ async function loadAIPermissions() {
     }
     
     try {
-        const response = await fetch('/.netlify/functions/api/ai/permissions', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/ai/permissions'), {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'user-id': currentUser.id
@@ -312,9 +330,9 @@ async function toggleAIPermissions() {
     }
     
     try {
-        const endpoint = newStatus ? 
-            '/.netlify/functions/api/ai/permissions/enable' : 
-            '/.netlify/functions/api/ai/permissions/disable';
+        const endpoint = isEnable ? 
+            CONFIG.getApiEndpoint('/api/ai/permissions/enable') :
+            CONFIG.getApiEndpoint('/api/ai/permissions/disable');
         
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -366,7 +384,7 @@ async function sendAIChatMessage() {
     inputElement.value = '';
     
     try {
-        const response = await fetch('/.netlify/functions/api/ai/chat', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/ai/chat'), {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -434,7 +452,7 @@ async function loadUserPosts() {
     }
     
     try {
-        const response = await fetch('/.netlify/functions/api/facebook/posts', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/facebook/posts'), {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'user-id': currentUser.id
@@ -508,7 +526,7 @@ async function generatePost() {
     }
     
     try {
-        const response = await fetch('/.netlify/functions/api/facebook/generate-post', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/facebook/generate-post'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

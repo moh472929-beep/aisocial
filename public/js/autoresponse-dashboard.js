@@ -15,12 +15,10 @@ async function loadUserData() {
     }
     
     try {
-        // Use environment-appropriate endpoint
-    const apiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? '/api/auth/profile' 
-        : '/.netlify/functions/api/auth/profile';
+        // Use CONFIG for environment-appropriate endpoint
+        const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
         
-    const response = await fetch(apiEndpoint, {
+        const response = await fetch(apiEndpoint, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -64,7 +62,7 @@ async function loadAutoResponseSettings() {
     }
     
     try {
-        const response = await fetch('/.netlify/functions/api/autoresponse/settings', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/autoresponse/settings'), {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -97,7 +95,7 @@ async function saveAutoResponseSettings() {
     showLoading();
     
     try {
-        const response = await fetch('/.netlify/functions/api/autoresponse/settings', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/autoresponse/settings'), {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -194,7 +192,7 @@ async function loadRecentResponses() {
     }
     
     try {
-        const response = await fetch('/.netlify/functions/api/autoresponse/recent', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/autoresponse/recent'), {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

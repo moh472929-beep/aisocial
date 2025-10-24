@@ -21,13 +21,20 @@ async function initializeModels(opts = {}) {
     // Always initialize User model; fallback to in-memory when requested
     const User = instantiate(loadModel(useMemory ? "memory/UserMemory.js" : "User.js"));
 
-    // When using memory, only register User to avoid DB-dependent initializations
+    // When using memory, initialize essential models with in-memory versions
     if (useMemory) {
-      modelsRegistry = { User };
-      if (typeof User?.initialize === "function") {
-        await User.initialize();
+      const Analytics = instantiate(loadModel("memory/AnalyticsMemory.js"));
+      
+      modelsRegistry = { User, Analytics };
+      
+      for (const key of Object.keys(modelsRegistry)) {
+        const model = modelsRegistry[key];
+        if (typeof model?.initialize === "function") {
+          await model.initialize();
+        }
       }
-      logger.info("✅ User model initialized (in-memory)");
+      
+      logger.info("✅ In-memory models initialized (User, Analytics)");
       return;
     }
 

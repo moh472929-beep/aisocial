@@ -10,8 +10,23 @@ const ApiError = require('../utils/ApiError');
 const cache = require('../utils/cache');
 const { SUCCESS_MESSAGES, ERROR_MESSAGES, CACHE_KEYS, CACHE_TTL } = require('../utils/constants');
 const validators = require('../utils/validators');
+const openaiService = require('../services/openaiService');
 
 const router = express.Router();
+
+// التحقق من صلاحيات AI للمستخدم
+async function hasAIPermissions(userId) {
+  const userModel = dbInit.getModel('User');
+  const user = await userModel.findById(userId);
+  
+  // التحقق من الاشتراك المميز أولاً
+  if (!user || user.subscription !== 'premium') {
+    return false;
+  }
+  
+  // إذا كان المستخدم مميز، فهو يملك صلاحيات AI
+  return true;
+}
 
 // تمكين صلاحيات AI للمستخدم مع دعم الصلاحيات المفصلة
 router.post('/permissions/enable', authenticateToken, async (req, res, next) => {
@@ -248,18 +263,11 @@ router.post(
       // إعداد محادثة OpenAI
       const openaiApiKey = config.ai.openaiApiKey;
 
-      if (!openaiApiKey) {
-        return res.status(500).json({
-          success: false,
-          error: 'مفتاح API الخاص بـ OpenAI غير متوفر',
-        });
-      }
-
       // إعداد سياق المحادثة
       const messages = [
         {
           role: 'system',
-          content: `أنت مساعد ذكي متخصص في إدارة صفحات الفيسبوك وإنشاء المحتوى لـ ${user.fullName}. يمكنك مساعدة المستخدم في إنشاء منشورات، جدولة المحتوى، وإدارة صفحاتهم على الفيسبوك. استخدم اللغة العربية في ردودك.`,
+          content: `أنت مساعد ذكي متخصص في إدارة صفحات الفيسبوك وإنشاء المحتوى لـ ${user.fullName}. يمكنك مساعدة المستخدم في إنشاء منشورات، جدولة المحتوى، وإدارة صفحاتهم على الفيسبوك بطريقة احترافية وجذابة.`,
         },
       ];
 
@@ -279,31 +287,19 @@ router.post(
         content: message,
       });
 
-      // إرسال الطلب إلى OpenAI
-      const response = await axios.post(
-        'https://api.openai.com/v1/chat/completions',
-        {
-          model: 'gpt-3.5-turbo',
-          messages: messages,
-          max_tokens: config.ai.maxTokens,
-          temperature: config.ai.temperature,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${openaiApiKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // استخدام خدمة OpenAI الجديدة
+      const aiResponse = await openaiService.chat(messages);
 
-      const aiResponse = response.data.choices[0].message.content;
-
-      // حفظ التفاعل في ذاكرة AI
-      await userModel.addInteractionToHistory(req.user.userId, {
-        userMessage: message,
-        aiResponse: aiResponse,
-        context: context,
-      });
+      // حفظ التفاعل في ذاكرة AI (اختياري - لا يؤثر على النتيجة)
+      try {
+        await userModel.addInteractionToHistory(req.user.userId, {
+          userMessage: message,
+          aiResponse: aiResponse,
+          context: context,
+        });
+      } catch (historyError) {
+        console.warn('Failed to save interaction to history:', historyError.message);
+      }
 
       res.json({
         success: true,
@@ -373,37 +369,19 @@ router.post('/image', authenticateToken, async (req, res) => {
     // إعداد مفتاح API
     const openaiApiKey = config.ai.openaiApiKey;
 
-    if (!openaiApiKey) {
-      return res.status(500).json({
-        success: false,
-        error: 'مفتاح API الخاص بـ OpenAI غير متوفر',
-      });
-    }
+    // إرسال الطلب إلى DALL·E باستخدام خدمة OpenAI
+    const imageUrl = await openaiService.generateImage(prompt, { size: size || '512x512' });
 
-    // إرسال الطلب إلى DALL·E
-    const response = await axios.post(
-      'https://api.openai.com/v1/images/generations',
-      {
+    // حفظ التفاعل في ذاكرة AI (اختياري - لا يؤثر على النتيجة)
+    try {
+      await userModel.addInteractionToHistory(req.user.userId, {
+        action: 'generate_image',
         prompt: prompt,
-        n: 1,
-        size: size || '512x512',
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${openaiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    const imageUrl = response.data.data[0].url;
-
-    // حفظ التفاعل في ذاكرة AI
-    await userModel.addInteractionToHistory(req.user.userId, {
-      action: 'generate_image',
-      prompt: prompt,
-      imageUrl: imageUrl,
-    });
+        imageUrl: imageUrl,
+      });
+    } catch (historyError) {
+      console.warn('Failed to save interaction to history:', historyError.message);
+    }
 
     res.json({
       success: true,

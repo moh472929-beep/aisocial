@@ -74,6 +74,17 @@ class UserMemory {
     this.users.set(userId, user);
     return true;
   }
+
+  async update(userId, updateData) {
+    const user = this.users.get(userId);
+    if (!user) return false;
+    
+    // Update user data
+    Object.assign(user, updateData);
+    user.updatedAt = new Date().toISOString();
+    this.users.set(userId, user);
+    return true;
+  }
 }
 
 module.exports = UserMemory;

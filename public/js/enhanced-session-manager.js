@@ -176,7 +176,7 @@ class EnhancedSessionManager {
 
             for (let attempt = 1; attempt <= retries; attempt++) {
                 try {
-                    const response = await fetch('/api/auth/profile', {
+                    const response = await fetch(CONFIG.getApiEndpoint('/api/auth/profile'), {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${this.sessionData.token}`,
@@ -239,7 +239,7 @@ class EnhancedSessionManager {
         }
 
         try {
-            const response = await fetch('/api/auth/refresh', {
+            const response = await fetch(CONFIG.getApiEndpoint('/api/auth/refresh'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -360,7 +360,7 @@ class EnhancedSessionManager {
             // Notify server about logout
             if (this.sessionData.token) {
                 try {
-                    await fetch('/api/auth/logout', {
+                    await fetch(CONFIG.getApiEndpoint('/api/auth/logout'), {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${this.sessionData.token}`,

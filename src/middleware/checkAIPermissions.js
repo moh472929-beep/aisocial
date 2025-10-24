@@ -17,14 +17,23 @@ const checkAIPermissions = async (req, res, next) => {
       throw ApiError.notFound('User not found', 'المستخدم غير موجود');
     }
 
-    // Check if AI permissions are enabled
-    if (!user.aiPermissions || !user.aiPermissions.enabled) {
+    // Check if user has premium subscription (premium users get AI permissions automatically)
+    const hasPremiumSubscription = user.subscription === 'premium' || 
+                                   (user.subscription && 
+                                    user.subscription.type === 'premium' && 
+                                    user.subscription.isActive);
+
+    // Check if AI permissions are enabled OR user has premium subscription
+    const hasAIPermissions = user.aiEnabled || 
+                            (user.aiPermissions && user.aiPermissions.enabled);
+
+    if (!hasPremiumSubscription && !hasAIPermissions) {
       return res.status(403).json({
         success: false,
         error: 'AI permissions not enabled',
         errorAr: 'صلاحيات الذكاء الاصطناعي غير مفعلة',
-        message: 'Please enable AI permissions to use this feature',
-        messageAr: 'يرجى تفعيل صلاحيات الذكاء الاصطناعي لاستخدام هذه الميزة',
+        message: 'Please enable AI permissions or upgrade to premium to use this feature',
+        messageAr: 'يرجى تفعيل صلاحيات الذكاء الاصطناعي أو الترقية للحساب المميز لاستخدام هذه الميزة',
       });
     }
 

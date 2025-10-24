@@ -15,12 +15,10 @@ async function loadUserData() {
     }
     
     try {
-        // Use environment-appropriate endpoint
-    const apiEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? '/api/auth/profile' 
-        : '/.netlify/functions/api/auth/profile';
+        // Use CONFIG for environment-appropriate endpoint
+        const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
         
-    const response = await fetch(apiEndpoint, {
+        const response = await fetch(apiEndpoint, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -67,7 +65,7 @@ async function loadAnalyticsData(period = 'daily') {
     
     try {
         // Fetch analytics data from backend using unified endpoint
-        const response = await fetch(`/api/analytics/dashboard?period=${period}`, {
+        const response = await fetch(CONFIG.getApiEndpoint(`/api/analytics/dashboard?period=${period}`), {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -342,7 +340,7 @@ async function analyzeCompetitor() {
         }
         
         // Send request to analyze competitor
-        const response = await fetch('/.netlify/functions/api/competitor/analyze', {
+        const response = await fetch(CONFIG.getApiEndpoint('/api/competitor/analyze'), {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

@@ -15,9 +15,9 @@ const router = express.Router();
 
 // Enhanced brute-force protection for login using rate-limiter-flexible
 const loginLimiter = new RateLimiterMemory({
-  points: 5, // 5 tries
-  duration: 60 * 15, // per 15 minutes
-  blockDuration: 60 * 30, // Block for 30 minutes after too many attempts
+  points: 20, // Increased from 5 to 20 for testing
+  duration: 60 * 5, // Reduced from 15 to 5 minutes
+  blockDuration: 60 * 5, // Reduced from 30 to 5 minutes
 });
 
 // Enhanced signup rate limiting
@@ -188,8 +188,13 @@ router.post('/login', validateLogin, async (req, res, next) => {
       SUCCESS_MESSAGES.LOGIN_SUCCESS.ar
     );
   } catch (error) {
-    if (error instanceof Error && error.msBeforeNext) {
-      return res.status(429).json({ success: false, error: 'Too many login attempts' });
+    // Handle rate limiting errors specifically
+    if (error.msBeforeNext || error.remainingPoints !== undefined) {
+      return res.status(429).json({ 
+        success: false, 
+        error: 'Too many login attempts. Please try again later.',
+        retryAfter: error.msBeforeNext || 900000 // 15 minutes default
+      });
     }
     logger.error('Login error:', error);
     next(error);

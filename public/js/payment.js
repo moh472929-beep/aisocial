@@ -103,24 +103,58 @@ document.addEventListener('DOMContentLoaded', function() {
             if (loading) loading.style.display = 'block';
             
             try {
-                // Simulate payment processing
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                
-                // Show success message
-                if (successMessage) {
-                    successMessage.textContent = 'تم الدفع بنجاح! جاري تفعيل اشتراكك...';
-                    successMessage.style.display = 'block';
+                // Get token from localStorage
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    throw new Error('لم يتم العثور على رمز التفويض. يرجى تسجيل الدخول مرة أخرى.');
                 }
-                
-                // Redirect to dashboard after 2 seconds
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 2000);
-                
+
+                // Send payment request to API
+                const response = await fetch(CONFIG.getApiEndpoint('/api/payment/process'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        cardNumber: cardNumber.replace(/\s/g, ''),
+                        expiryDate,
+                        cvv,
+                        cardholderName,
+                        billingEmail,
+                        plan: 'premium'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // Update localStorage with new token and user data
+                    if (result.data.accessToken) {
+                        localStorage.setItem('accessToken', result.data.accessToken);
+                    }
+                    if (result.data.user) {
+                        localStorage.setItem('user', JSON.stringify(result.data.user));
+                    }
+
+                    // Show success message
+                    if (successMessage) {
+                        successMessage.textContent = result.data.message || 'تم الدفع بنجاح! جاري تفعيل اشتراكك...';
+                        successMessage.style.display = 'block';
+                    }
+
+                    // Redirect to dashboard after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                } else {
+                    throw new Error(result.message || result.error || 'حدث خطأ في معالجة الدفع');
+                }
+
             } catch (error) {
                 console.error('Payment error:', error);
                 if (errorMessage) {
-                    errorMessage.textContent = 'حدث خطأ في معالجة الدفع. يرجى المحاولة مرة أخرى.';
+                    errorMessage.textContent = error.message || 'حدث خطأ في معالجة الدفع. يرجى المحاولة مرة أخرى.';
                     errorMessage.style.display = 'block';
                 }
             } finally {

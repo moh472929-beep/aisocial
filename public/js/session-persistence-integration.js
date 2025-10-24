@@ -335,7 +335,7 @@ class SessionPersistenceIntegration {
     // Enhanced login function
     async performEnhancedLogin(username, password) {
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(CONFIG.getApiEndpoint('/api/auth/login'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
