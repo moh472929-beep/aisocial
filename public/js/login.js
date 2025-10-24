@@ -181,6 +181,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 showMsg('success', 'تم تسجيل الدخول بنجاح! جاري التوجيه...');
                 
+                // Add a small delay to ensure all data is properly stored
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
                 // Redirect immediately after ensuring storage
                 console.log('Login: Redirecting to dashboard...');
                 window.location.href = 'dashboard.html';

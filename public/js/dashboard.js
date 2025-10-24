@@ -17,26 +17,67 @@ document.addEventListener('DOMContentLoaded', async function() {
         tokenLength: localStorage.getItem('token')?.length || 0
     });
     
+    // Add a small delay to ensure all scripts are loaded
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Use the global session manager for consistency
     if (typeof window.sessionManager !== 'undefined') {
         console.log('Dashboard: SessionManager found, initializing session...');
-        const isAuthenticated = await window.sessionManager.initializeSession();
         
-        if (!isAuthenticated) {
-            // Session validation failed, user will be redirected
-            console.log('Dashboard: Session invalid, redirecting to login');
+        try {
+            const isAuthenticated = await window.sessionManager.initializeSession();
+            
+            if (!isAuthenticated) {
+                // Session validation failed, user will be redirected
+                console.log('Dashboard: Session invalid, redirecting to login');
+                return;
+            }
+            
+            currentUser = window.sessionManager.getCurrentUser();
+            console.log('Dashboard: Session validated successfully, user:', {
+                email: currentUser?.email,
+                fullName: currentUser?.fullName
+            });
+        } catch (error) {
+            console.error('Dashboard: Session initialization error:', error);
+            // On error, try to use cached data if available
+            const token = localStorage.getItem('token');
+            const cachedUser = localStorage.getItem('user');
+            
+            if (token && cachedUser) {
+                try {
+                    currentUser = JSON.parse(cachedUser);
+                    console.log('Dashboard: Using cached user data due to initialization error');
+                } catch (e) {
+                    console.error('Dashboard: Failed to parse cached user:', e);
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } else {
+                window.location.href = 'login.html';
+                return;
+            }
+        }
+    } else {
+        console.error('Dashboard: SessionManager not available, checking for cached session...');
+        
+        // Fallback: check for cached session data
+        const token = localStorage.getItem('token');
+        const cachedUser = localStorage.getItem('user');
+        
+        if (token && cachedUser) {
+            try {
+                currentUser = JSON.parse(cachedUser);
+                console.log('Dashboard: Using cached session data');
+            } catch (e) {
+                console.error('Dashboard: Failed to parse cached user:', e);
+                window.location.href = 'login.html';
+                return;
+            }
+        } else {
+            window.location.href = 'login.html';
             return;
         }
-        
-        currentUser = window.sessionManager.getCurrentUser();
-        console.log('Dashboard: Session validated successfully, user:', {
-            email: currentUser?.email,
-            fullName: currentUser?.fullName
-        });
-    } else {
-        console.error('Dashboard: SessionManager not available');
-        window.location.href = 'login.html';
-        return;
     }
     
     // Apply access control after session validation

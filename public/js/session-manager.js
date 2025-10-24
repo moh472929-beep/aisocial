@@ -27,13 +27,26 @@ class SessionManager {
             console.log('SessionManager: No token found in localStorage');
             return false;
         }
+
+        // If we have cached user data, use it temporarily while validating
+        if (storedUser) {
+            try {
+                this.currentUser = JSON.parse(storedUser);
+                console.log('SessionManager: Using cached user data during validation');
+            } catch (e) {
+                console.warn('SessionManager: Failed to parse cached user data:', e);
+            }
+        }
         
         try {
             // Always validate with backend and refresh user data
             const apiEndpoint = CONFIG.getApiEndpoint('/api/auth/profile');
             console.log('SessionManager: Calling API endpoint:', apiEndpoint);
             
-            // Use enhanced fetch with retry logic
+            // Use enhanced fetch with retry logic and timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            
             const response = await CONFIG.fetchWithRetry(apiEndpoint, {
                 method: 'GET',
                 headers: {
@@ -41,9 +54,11 @@ class SessionManager {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                cache: 'no-cache'
+                cache: 'no-cache',
+                signal: controller.signal
             });
             
+            clearTimeout(timeoutId);
             console.log('SessionManager: API response status:', response.status);
             
             if (response.ok) {
@@ -53,6 +68,11 @@ class SessionManager {
                     data = responseText ? JSON.parse(responseText) : {};
                 } catch (parseError) {
                     console.error('SessionManager: Failed to parse response:', parseError);
+                    // If we have cached user, continue with it
+                    if (this.currentUser) {
+                        console.log('SessionManager: Using cached user due to parse error');
+                        return true;
+                    }
                     return false;
                 }
                 
@@ -77,30 +97,47 @@ class SessionManager {
                     return true;
                 } else {
                     console.log('SessionManager: API response invalid - missing success or user');
+                    // If response is invalid but we have cached user, use it
+                    if (this.currentUser) {
+                        console.log('SessionManager: Using cached user due to invalid API response');
+                        return true;
+                    }
                 }
+            } else if (response.status === 401 || response.status === 403) {
+                // Only clear session on explicit authentication errors
+                console.log('SessionManager: Authentication failed, token is invalid');
+                return false;
             } else {
                 console.log('SessionManager: API response not OK, status:', response.status);
-                const errorText = await response.text();
-                console.log('SessionManager: Error response:', errorText);
+                // For other errors (500, network issues), use cached user if available
+                if (this.currentUser) {
+                    console.log('SessionManager: Using cached user due to server error');
+                    return true;
+                }
             }
             
-            // Token invalid or expired
+            // Token invalid or expired only if we got explicit auth error
             console.log('SessionManager: Session validation failed');
             return false;
             
         } catch (error) {
             console.error('SessionManager: Session validation error:', error);
-            // On network error, use cached user if available
-            if (storedUser) {
-                try {
-                    this.currentUser = JSON.parse(storedUser);
-                    console.log('SessionManager: Using cached user due to network error');
-                    return true;
-                } catch (e) {
-                    console.warn('SessionManager: Cached user parse failed:', e);
+            
+            // On network error or timeout, use cached user if available
+            if (this.currentUser || storedUser) {
+                if (!this.currentUser && storedUser) {
+                    try {
+                        this.currentUser = JSON.parse(storedUser);
+                    } catch (e) {
+                        console.warn('SessionManager: Cached user parse failed:', e);
+                        return false;
+                    }
                 }
+                console.log('SessionManager: Using cached user due to network error');
+                return true;
             }
             
+            // If no cached data and network error, fail validation
             return false;
         }
     }
