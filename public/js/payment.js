@@ -143,9 +143,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         successMessage.style.display = 'block';
                     }
 
-                    // Redirect to dashboard after 2 seconds
+                    // Redirect to appropriate dashboard after 2 seconds
                     setTimeout(() => {
-                        window.location.href = 'dashboard.html';
+                        // Check user subscription type for proper redirection
+                        const userData = localStorage.getItem('user');
+                        if (userData) {
+                            try {
+                                const user = JSON.parse(userData);
+                                const userSubscription = user?.subscription || 'free';
+                                console.log('Payment: User subscription type after payment:', userSubscription);
+                                
+                                if (userSubscription === 'premium' || userSubscription === 'paid') {
+                                    console.log('Payment: Premium user, redirecting to AI dashboard...');
+                                    window.location.href = 'ai-dashboard.html';
+                                } else {
+                                    console.log('Payment: Free user, redirecting to regular dashboard...');
+                                    window.location.href = 'dashboard.html';
+                                }
+                            } catch (e) {
+                                console.log('Payment: Error parsing user data, redirecting to dashboard...');
+                                window.location.href = 'dashboard.html';
+                            }
+                        } else {
+                            console.log('Payment: No user data found, redirecting to dashboard...');
+                            window.location.href = 'dashboard.html';
+                        }
                     }, 2000);
                 } else {
                     throw new Error(result.message || result.error || 'حدث خطأ في معالجة الدفع');

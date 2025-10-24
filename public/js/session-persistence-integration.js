@@ -257,7 +257,29 @@ class SessionPersistenceIntegration {
                     );
                     
                     if (result.success) {
-                        window.location.href = 'dashboard.html';
+                        // Check user subscription type for proper redirection
+                        const userData = localStorage.getItem('user');
+                        if (userData) {
+                            try {
+                                const user = JSON.parse(userData);
+                                const userSubscription = user?.subscription || 'free';
+                                console.log('Session Integration: User subscription type:', userSubscription);
+                                
+                                if (userSubscription === 'premium' || userSubscription === 'paid') {
+                                    console.log('Session Integration: Premium user, redirecting to AI dashboard...');
+                                    window.location.href = 'ai-dashboard.html';
+                                } else {
+                                    console.log('Session Integration: Free user, redirecting to regular dashboard...');
+                                    window.location.href = 'dashboard.html';
+                                }
+                            } catch (e) {
+                                console.log('Session Integration: Error parsing user data, redirecting to dashboard...');
+                                window.location.href = 'dashboard.html';
+                            }
+                        } else {
+                            console.log('Session Integration: No user data found, redirecting to dashboard...');
+                            window.location.href = 'dashboard.html';
+                        }
                     } else {
                         this.showLoginError(result.message);
                     }
