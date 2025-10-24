@@ -65,17 +65,7 @@ function initializeLanguageSystem() {
     console.log('Language Switcher: Initializing language system...');
     window.languageSystemInitialized = true;
     
-    // Load saved language preference immediately
-    const savedLang = localStorage.getItem('preferredLanguage') || 'ar';
     
-    // Apply saved language to page direction
-    if (savedLang === 'ar') {
-        document.documentElement.dir = 'rtl';
-        document.documentElement.lang = 'ar';
-    } else {
-        document.documentElement.dir = 'ltr';
-        document.documentElement.lang = savedLang;
-    }
     
     const languageSelector = document.querySelector('.language-selector');
     const selectedLanguage = document.querySelector('.selected-language');
@@ -87,8 +77,7 @@ function initializeLanguageSystem() {
         return;
     }
     
-    // Load saved language preference
-    loadSavedLanguage();
+    
     
     // Toggle dropdown
     selectedLanguage.addEventListener('click', function(e) {

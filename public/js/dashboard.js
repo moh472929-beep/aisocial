@@ -136,8 +136,7 @@ async function validateSession() {
             return true;
         }
         
-        // If no cached data and network error, redirect to login
-        clearSession();
+        // If no cached data and network error, redirect to login without clearing tokens
         redirectToLogin();
         return false;
     }

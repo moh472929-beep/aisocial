@@ -32,12 +32,10 @@ async function loadUserData() {
             currentUser = data.user;
             updateUserInfo();
         } else {
-            localStorage.removeItem('token');
             window.location.href = 'login.html';
         }
     } catch (error) {
         console.error('Error loading user data:', error);
-        localStorage.removeItem('token');
         window.location.href = 'login.html';
     }
 }
@@ -407,8 +405,11 @@ async function refreshTopics() {
 
 // Logout function
 function logout() {
-    localStorage.removeItem('token');
-    window.location.href = 'index.html';
+    if (typeof window.sessionManager !== 'undefined' && typeof window.sessionManager.logout === 'function') {
+        window.sessionManager.logout();
+    } else {
+        window.location.href = 'login.html';
+    }
 }
 
 // Event listeners

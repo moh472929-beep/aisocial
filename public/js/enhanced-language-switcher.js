@@ -26,14 +26,8 @@ class EnhancedLanguageSwitcher {
                 await this.waitForSessionManager();
             }
 
-            // Load saved language preference
-            this.loadLanguagePreference();
-            
             // Set up language switcher UI
             this.setupLanguageSwitcher();
-            
-            // Apply initial language
-            await this.applyLanguage(this.currentLanguage, false);
             
             this.isInitialized = true;
             console.info('Enhanced Language Switcher initialized');
