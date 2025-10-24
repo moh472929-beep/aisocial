@@ -67,13 +67,19 @@ const verifyToken = token => {
 
 // Role-based authorization middleware
 const authorizeRole = requiredRole => {
-  const weights = { user: 1, manager: 2, admin: 3 };
+  const weights = { user: 1, premium: 2, manager: 3, admin: 4 };
   return (req, res, next) => {
     const userRole = req.user?.role || 'user';
     if (weights[userRole] >= weights[requiredRole]) {
       return next();
     }
-    return res.status(403).json({ success: false, error: 'Insufficient role' });
+    return res.status(403).json({ 
+      success: false, 
+      error: 'Insufficient role',
+      errorAr: 'صلاحيات غير كافية',
+      currentRole: userRole,
+      requiredRole: requiredRole
+    });
   };
 };
 

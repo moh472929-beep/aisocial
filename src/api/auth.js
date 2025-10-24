@@ -22,7 +22,7 @@ const loginLimiter = new RateLimiterMemory({
 
 // Enhanced signup rate limiting
 const signupLimiter = new RateLimiterMemory({ 
-  points: 3, 
+  points: 10, // Increased from 3 to 10 for testing
   duration: 60 * 60, // 1 hour
   blockDuration: 60 * 60 * 24 // Block for 24 hours after too many attempts
 });
@@ -55,6 +55,7 @@ router.post(['/signup', '/register'], validateSignup, async (req, res, next) => 
       email,
       passwordHash: hashedPassword,
       role: 'user',
+      subscription: 'free',
       isEmailVerified: false,
       aiEnabled: false,
       emailVerificationToken,
@@ -66,7 +67,7 @@ router.post(['/signup', '/register'], validateSignup, async (req, res, next) => 
     const { passwordHash: _, ...userWithoutPassword } = user;
 
     // Generate JWT token
-    const token = generateToken({ userId: user.id, email: user.email, role: user.role }, '15m');
+    const token = generateToken({ userId: user.id, email: user.email, role: user.role, subscription: user.subscription || 'free' }, '15m');
 
     logger.info('User signed up successfully', { userId: user.id, email: user.email });
 
@@ -148,13 +149,24 @@ router.post('/login', validateLogin, async (req, res, next) => {
     // Remove password from response
     const { passwordHash: _, ...userWithoutPassword } = user;
 
-    // Generate JWT token
+    // Generate JWT token with current user data from database
     const accessToken = generateToken(
-      { userId: user.id, email: user.email, role: user.role },
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role || 'user',
+        subscription: user.subscription || 'free'
+      },
       '15m'
     );
     const refreshToken = generateToken(
-      { userId: user.id, email: user.email, role: user.role, type: 'refresh' },
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role || 'user',
+        subscription: user.subscription || 'free',
+        type: 'refresh' 
+      },
       '7d'
     );
 
@@ -243,20 +255,26 @@ router.get('/verify', async (req, res, next) => {
 router.post('/refresh', async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
-    if (!refreshToken) return ApiResponse.badRequest(res, 'Refresh token required');
+    if (!refreshToken) return ApiResponse.error(res, 'Refresh token required', 400);
     const payload = require('../middleware/auth').verifyToken(refreshToken);
     if (payload.type !== 'refresh') {
-      return ApiResponse.badRequest(res, 'Invalid refresh token');
+      return ApiResponse.error(res, 'Invalid refresh token', 400);
     }
     const userModel = dbInit.getModel('User');
     const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
     const user = await userModel.findById(payload.userId);
     const hasToken = (user.refreshTokens || []).some(rt => rt === tokenHash || rt?.tokenHash === tokenHash);
     if (!hasToken) {
-      return ApiResponse.unauthorized(res, null, 'Refresh token revoked');
+      return ApiResponse.error(res, 'Refresh token revoked', 401);
     }
+    // Generate new access token with current user data from database
     const accessToken = generateToken(
-      { userId: payload.userId, email: payload.email, role: payload.role },
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role || 'user',
+        subscription: user.subscription || 'free'
+      },
       '15m'
     );
     return ApiResponse.success(res, { accessToken }, 'Token refreshed');
