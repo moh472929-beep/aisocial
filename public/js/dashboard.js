@@ -180,26 +180,53 @@ async function initializeSession() {
 // Load user data
 async function loadUserData() {
     const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
     
-    // Check if user is authenticated
-    if (!token || !user) {
-        console.log('No authenticated user found');
-        clearSession();
-        redirectToLogin();
+    // Prefer sessionManager for authoritative user state
+    let sessionUser = null;
+    if (typeof window.sessionManager !== 'undefined') {
+        sessionUser = window.sessionManager.getCurrentUser();
+    }
+
+    // If user not yet available from sessionManager, try to validate and refresh
+    if (!sessionUser && typeof window.sessionManager !== 'undefined') {
+        try {
+            const ok = await window.sessionManager.validateSession();
+            if (ok) {
+                sessionUser = window.sessionManager.getCurrentUser();
+                if (sessionUser) {
+                    // Cache user in localStorage for fallback
+                    try { localStorage.setItem('user', JSON.stringify(sessionUser)); } catch {}
+                }
+            }
+        } catch (e) {
+            console.warn('Dashboard: Session validation during loadUserData failed:', e);
+        }
+    }
+
+    // Fallback to cached localStorage user if sessionManager not available or still null
+    if (!sessionUser) {
+        const rawUser = localStorage.getItem('user');
+        if (rawUser) {
+            try {
+                sessionUser = JSON.parse(rawUser);
+            } catch (err) {
+                console.error('Dashboard: Error parsing cached user data:', err);
+            }
+        }
+    }
+
+    // If token or user still missing after validation, redirect without clearing token
+    if (!token || !sessionUser) {
+        console.log('Dashboard: No authenticated user after validation; redirecting to login');
+        // IMPORTANT: Do NOT clear token here to avoid race-induced logout loops
+        window.location.href = 'login.html';
         return;
     }
-    
-    try {
-        currentUser = JSON.parse(user);
-        updateUserInfo();
-        loadUserPosts();
-        loadAIPermissions();
-    } catch (error) {
-        console.error('Error parsing user data:', error);
-        clearSession();
-        redirectToLogin();
-    }
+
+    currentUser = sessionUser;
+    updateUserInfo();
+    loadUserPosts();
+    loadAIPermissions();
 }
 
 // Load AI permissions
