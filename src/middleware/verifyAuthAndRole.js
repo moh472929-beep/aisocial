@@ -121,6 +121,6 @@ function checkPathAccess(path, role) {
   return true;
 }
 
-module.exports = {
+export {
   verifyAuthAndRole
 };

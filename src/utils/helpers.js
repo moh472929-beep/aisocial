@@ -373,7 +373,7 @@ const matchPath = (path, pattern) => {
   return regex.test(normalizedPath);
 };
 
-module.exports = {
+export {
   generateRandomString,
   generateSecureToken,
   sleep,

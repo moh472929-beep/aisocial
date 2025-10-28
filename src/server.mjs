@@ -6,10 +6,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 
-import dbInit from "./db/init.js";
+import { initDB, getModel } from "./db/init.js";
 import { logger } from "./utils/logger.mjs";
-import errorModule from "./middleware/errorHandler.js";
-const { errorHandler, notFoundHandler } = errorModule;
+import { errorHandler, notFoundHandler, logger as errorLogger } from "./middleware/errorHandler.js";
 
 dotenv.config();
 
@@ -138,7 +137,7 @@ app.use((req, res, next) => {
 });
 
 // Initialize DB once and create a readiness promise
-const dbReady = dbInit.initDB();
+const dbReady = initDB();
 
 // Guard /api requests until DB and models are ready
 app.use('/api', async (req, res, next) => {
@@ -163,7 +162,7 @@ import apiRoutes from "./api/index.mjs";
 app.use("/api", apiRoutes);
 
 // Import our RBAC middleware
-import verifyAuthAndRole from './middleware/verifyAuthAndRole.js';
+import { verifyAuthAndRole } from './middleware/verifyAuthAndRole.js';
 import premiumRoutes from './routes/premium.js';
 
 // Protected routes handler - serve files through authentication
