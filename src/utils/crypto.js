@@ -32,7 +32,7 @@ const decryptToken = (cipherTextBase64) => {
   return decrypted.toString('utf8');
 };
 
-module.exports = {
+export {
   encryptToken,
   decryptToken,
 };

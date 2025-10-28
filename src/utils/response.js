@@ -40,7 +40,7 @@ const sendValidationError = (res, errors, message = 'Validation failed') => {
   });
 };
 
-module.exports = {
+export {
   sendSuccess,
   sendError,
   sendNotFound,
