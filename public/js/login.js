@@ -207,11 +207,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add a small delay to ensure all data is properly stored
                 await new Promise(resolve => setTimeout(resolve, 200));
                 
-                // Check if user is premium and redirect accordingly
+                // Check if user is premium based on role or subscription and redirect accordingly
                 const userSubscription = user?.subscription || 'free';
-                console.log('Login: User subscription type:', userSubscription);
+                const userRole = user?.role || 'user';
+                console.log('Login: User subscription type:', userSubscription, 'User role:', userRole);
                 
-                if (userSubscription === 'premium' || userSubscription === 'paid') {
+                if (userSubscription === 'premium' || userSubscription === 'paid' || userRole === 'premium') {
                     console.log('Login: Premium user detected, redirecting to AI dashboard...');
                     window.location.href = 'ai-dashboard.html';
                 } else {

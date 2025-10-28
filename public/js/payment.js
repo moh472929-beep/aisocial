@@ -151,9 +151,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             try {
                                 const user = JSON.parse(userData);
                                 const userSubscription = user?.subscription || 'free';
-                                console.log('Payment: User subscription type after payment:', userSubscription);
+                                const userRole = user?.role || 'user';
+                                console.log('Payment: User subscription type after payment:', userSubscription, 'User role:', userRole);
                                 
-                                if (userSubscription === 'premium' || userSubscription === 'paid') {
+                                if (userSubscription === 'premium' || userSubscription === 'paid' || userRole === 'premium') {
                                     console.log('Payment: Premium user, redirecting to AI dashboard...');
                                     window.location.href = 'ai-dashboard.html';
                                 } else {

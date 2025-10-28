@@ -263,9 +263,10 @@ class SessionPersistenceIntegration {
                             try {
                                 const user = JSON.parse(userData);
                                 const userSubscription = user?.subscription || 'free';
-                                console.log('Session Integration: User subscription type:', userSubscription);
+                                const userRole = user?.role || 'user';
+                                console.log('Session Integration: User subscription type:', userSubscription, 'User role:', userRole);
                                 
-                                if (userSubscription === 'premium' || userSubscription === 'paid') {
+                                if (userSubscription === 'premium' || userSubscription === 'paid' || userRole === 'premium') {
                                     console.log('Session Integration: Premium user, redirecting to AI dashboard...');
                                     window.location.href = 'ai-dashboard.html';
                                 } else {
