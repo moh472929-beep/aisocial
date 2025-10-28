@@ -1,5 +1,5 @@
-const dbInit = require('../db/init');
-const ApiError = require('../utils/ApiError');
+import { initDB, getModel } from "../db/init.js";
+import ApiError from "../utils/ApiError.js";
 
 /**
  * Middleware to check if user has AI permissions enabled
@@ -10,7 +10,7 @@ const checkAIPermissions = async (req, res, next) => {
       throw ApiError.unauthorized('User not authenticated', 'المستخدم غير مصادق عليه');
     }
 
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -55,7 +55,7 @@ const checkSubscription = (requiredLevel = 'free') => {
         throw ApiError.unauthorized('User not authenticated', 'المستخدم غير مصادق عليه');
       }
 
-      const userModel = dbInit.getModel('User');
+      const userModel = getModel('User');
       const user = await userModel.findById(req.user.userId);
 
       if (!user) {
@@ -100,7 +100,7 @@ const checkPostsRemaining = async (req, res, next) => {
       throw ApiError.unauthorized('User not authenticated', 'المستخدم غير مصادق عليه');
     }
 
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {

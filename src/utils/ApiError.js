@@ -1,7 +1,7 @@
 /**
  * Custom API Error class for better error handling
  */
-class ApiError extends Error {
+export default class ApiError extends Error {
   constructor(statusCode, message, messageAr = null, isOperational = true, stack = '') {
     super(message);
     this.statusCode = statusCode;
@@ -44,5 +44,3 @@ class ApiError extends Error {
     return new ApiError(500, message, messageAr, false);
   }
 }
-
-module.exports = ApiError;

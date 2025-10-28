@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
 // Get JWT secret from environment
 const getJWTSecret = () => {
@@ -83,7 +83,7 @@ const authorizeRole = requiredRole => {
   };
 };
 
-module.exports = {
+export {
   authenticateToken,
   generateToken,
   verifyToken,

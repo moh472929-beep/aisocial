@@ -1,22 +1,22 @@
-const express = require('express');
-const axios = require('axios');
-const dbInit = require('../db/init');
-const config = require('../../config');
-const { authenticateToken } = require('../middleware/auth');
-const { checkAIPermissions } = require('../middleware/checkAIPermissions');
-const ApiResponse = require('../utils/ApiResponse');
-const { decryptToken } = require('../utils/crypto');
-const ApiError = require('../utils/ApiError');
-const cache = require('../utils/cache');
-const { SUCCESS_MESSAGES, ERROR_MESSAGES, CACHE_KEYS, CACHE_TTL } = require('../utils/constants');
-const validators = require('../utils/validators');
-const openaiService = require('../services/openaiService');
+import express from "express";
+import axios from "axios";
+import { initDB, getModel } from "../db/init.js";
+import config from "../../config.js";
+import { authenticateToken  } from "../middleware/auth.js";
+import { checkAIPermissions  } from "../middleware/checkAIPermissions.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import { decryptToken  } from "../utils/crypto.js";
+import ApiError from "../utils/ApiError.js";
+import cache from "../utils/cache.js";
+import { SUCCESS_MESSAGES, ERROR_MESSAGES, CACHE_KEYS, CACHE_TTL  } from "../utils/constants.js";
+import validators from "../utils/validators.js";
+import openaiService from "../services/openaiService.js";
 
 const router = express.Router();
 
 // التحقق من صلاحيات AI للمستخدم
 async function hasAIPermissions(userId) {
-  const userModel = dbInit.getModel('User');
+  const userModel = getModel('User');
   const user = await userModel.findById(userId);
   
   // التحقق من الاشتراك المميز أولاً
@@ -31,7 +31,7 @@ async function hasAIPermissions(userId) {
 // تمكين صلاحيات AI للمستخدم مع دعم الصلاحيات المفصلة
 router.post('/permissions/enable', authenticateToken, async (req, res, next) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
 
     // تمكين صلاحيات AI مع الصلاحيات المفصلة
     const aiPermissions = {
@@ -74,7 +74,7 @@ router.post('/permissions/enable', authenticateToken, async (req, res, next) => 
 // تعطيل صلاحيات AI للمستخدم
 router.post('/permissions/disable', authenticateToken, async (req, res, next) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
 
     // تعطيل صلاحيات AI
     const aiPermissions = {
@@ -117,7 +117,7 @@ router.post('/permissions/disable', authenticateToken, async (req, res, next) =>
 // تحديث صلاحيات AI المفصلة للمستخدم
 router.put('/permissions/update', authenticateToken, async (req, res, next) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const { permissions } = req.body;
 
     // التحقق من صحة الصلاحيات المقدمة
@@ -193,7 +193,7 @@ router.put('/permissions/update', authenticateToken, async (req, res, next) => {
 // الحصول على حالة صلاحيات AI للمستخدم
 router.get('/permissions', authenticateToken, async (req, res) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -242,7 +242,7 @@ router.post(
         });
       }
 
-      const userModel = dbInit.getModel('User');
+      const userModel = getModel('User');
       const user = await userModel.findById(req.user.userId);
 
       if (!user) {
@@ -343,7 +343,7 @@ router.post('/image', authenticateToken, async (req, res) => {
       });
     }
 
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -416,7 +416,7 @@ router.post('/image', authenticateToken, async (req, res) => {
 router.put('/preferences', authenticateToken, async (req, res) => {
   try {
     const { preferences } = req.body;
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
 
     // تحديث تفضيلات AI
     const updated = await userModel.update(req.user.userId, {
@@ -448,7 +448,7 @@ router.put('/preferences', authenticateToken, async (req, res) => {
 // الحصول على ذاكرة AI للمستخدم
 router.get('/memory', authenticateToken, async (req, res) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -530,7 +530,7 @@ router.post('/publish', authenticateToken, checkAIPermissions, async (req, res, 
     if (!pageId || !message) {
       return ApiResponse.badRequest(res, 'pageId and message are required');
     }
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
     if (!user || !user.facebook || !user.facebook.pages) {
       return ApiResponse.notFound(res, null, 'No connected Facebook pages');
@@ -543,8 +543,8 @@ router.post('/publish', authenticateToken, checkAIPermissions, async (req, res, 
     if (imageData || imageUrl) {
       const photosUrl = `https://graph.facebook.com/v18.0/${pageId}/photos`;
       if (imageData) {
-        const FormData = require('form-data');
-        const form = new FormData();
+        const FormData = await import("form-data");
+        const form = new FormData.default();
         const base64 = imageData.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
         const buffer = Buffer.from(base64, 'base64');
         form.append('source', buffer, { filename: 'upload.jpg', contentType: 'image/jpeg' });
@@ -571,4 +571,4 @@ router.post('/publish', authenticateToken, checkAIPermissions, async (req, res, 
   }
 });
 
-module.exports = router;
+export default router;

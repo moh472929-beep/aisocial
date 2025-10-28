@@ -141,4 +141,4 @@ class Cache {
 // Create singleton instance
 const cache = new Cache();
 
-module.exports = cache;
+export default cache;

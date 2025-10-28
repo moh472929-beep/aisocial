@@ -1,9 +1,9 @@
-const express = require('express');
-const axios = require('axios');
-const dbInit = require('../db/init');
-const config = require('../../config');
-const { authenticateToken } = require('../middleware/auth');
-const { checkSubscription } = require('../middleware/checkAIPermissions');
+import express from "express";
+import axios from "axios";
+import { initDB, getModel } from "../db/init.js";
+import config from "../../config.js";
+import { authenticateToken  } from "../middleware/auth.js";
+import { checkSubscription  } from "../middleware/checkAIPermissions.js";
 
 const router = express.Router();
 
@@ -14,8 +14,8 @@ router.use(authenticateToken);
 router.post('/analyze', checkSubscription('premium'), async (req, res) => {
   try {
     const { competitorPageId } = req.body;
-    const userModel = dbInit.getModel('User');
-    const competitorAnalyticsModel = dbInit.getModel('CompetitorAnalytics');
+    const userModel = getModel('User');
+    const competitorAnalyticsModel = getModel('CompetitorAnalytics');
 
     if (!competitorPageId) {
       return res.status(400).json({
@@ -178,7 +178,7 @@ router.post('/analyze', checkSubscription('premium'), async (req, res) => {
 // Fetch stored analysis results
 router.get('/results', checkSubscription('premium'), async (req, res) => {
   try {
-    const competitorAnalyticsModel = dbInit.getModel('CompetitorAnalytics');
+    const competitorAnalyticsModel = getModel('CompetitorAnalytics');
     const analytics = await competitorAnalyticsModel.findByUserId(req.user.userId);
 
     res.json({
@@ -265,4 +265,4 @@ async function generateAISummary(analyticsData, user) {
   }
 }
 
-module.exports = router;
+export default router;

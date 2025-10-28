@@ -1,9 +1,9 @@
-const express = require('express');
-const axios = require('axios');
-const dbInit = require('../db/init');
-const config = require('../../config');
-const { authenticateToken } = require('../middleware/auth');
-const { checkSubscription } = require('../middleware/checkAIPermissions');
+import express from "express";
+import axios from "axios";
+import { initDB, getModel } from "../db/init.js";
+import config from "../../config.js";
+import { authenticateToken  } from "../middleware/auth.js";
+import { checkSubscription  } from "../middleware/checkAIPermissions.js";
 
 const router = express.Router();
 
@@ -14,8 +14,8 @@ router.use(authenticateToken);
 router.post('/fetch', checkSubscription('premium'), async (req, res) => {
   try {
     const { period = 'daily' } = req.body;
-    const userModel = dbInit.getModel('User');
-    const postModel = dbInit.getModel('Post');
+    const userModel = getModel('User');
+    const postModel = getModel('Post');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -94,9 +94,9 @@ router.post('/fetch', checkSubscription('premium'), async (req, res) => {
 router.post('/process', checkSubscription('premium'), async (req, res) => {
   try {
     const { period = 'daily' } = req.body;
-    const userModel = dbInit.getModel('User');
-    const postModel = dbInit.getModel('Post');
-    const analyticsModel = dbInit.getModel('Analytics');
+    const userModel = getModel('User');
+    const postModel = getModel('Post');
+    const analyticsModel = getModel('Analytics');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -223,8 +223,8 @@ router.post('/process', checkSubscription('premium'), async (req, res) => {
 router.get('/dashboard', checkSubscription('premium'), async (req, res) => {
   try {
     const { period = 'daily' } = req.query;
-    const userModel = dbInit.getModel('User');
-    const analyticsModel = dbInit.getModel('Analytics');
+    const userModel = getModel('User');
+    const analyticsModel = getModel('Analytics');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -328,4 +328,4 @@ function calculateFollowerGrowth(posts, currentFollowers) {
   return ((lastEngagement - firstEngagement) / firstEngagement) * 100;
 }
 
-module.exports = router;
+export default router;

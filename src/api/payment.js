@@ -1,7 +1,7 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const dbInit = require('../db/init');
-const { authenticateToken } = require('../middleware/auth');
+import express from "express";
+import jwt from "jsonwebtoken";
+import { initDB, getModel } from "../db/init.js";
+import { authenticateToken, generateToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ router.post('/process', authenticateToken, async (req, res) => {
       });
     }
 
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -71,7 +71,6 @@ router.post('/process', authenticateToken, async (req, res) => {
     const { passwordHash: _, ...userWithoutPassword } = updatedUser;
 
     // Generate new token with updated subscription
-    const { generateToken } = require('../middleware/auth');
     const newToken = generateToken(
       { 
         userId: updatedUser.id, 
@@ -121,7 +120,7 @@ router.post('/process', authenticateToken, async (req, res) => {
 // Get subscription status
 router.get('/subscription', authenticateToken, async (req, res) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -170,4 +169,4 @@ router.get('/subscription', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

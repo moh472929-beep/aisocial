@@ -1,4 +1,4 @@
-const { logger } = require('./errorHandler');
+import { logger  } from "./errorHandler.js";
 
 // Request logging middleware
 const requestLogger = (req, res, next) => {
@@ -26,4 +26,4 @@ const requestLogger = (req, res, next) => {
   next();
 };
 
-module.exports = requestLogger;
+export default requestLogger;

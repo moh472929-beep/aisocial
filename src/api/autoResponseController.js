@@ -1,9 +1,9 @@
-const express = require('express');
-const axios = require('axios');
-const dbInit = require('../db/init');
-const config = require('../../config');
-const { authenticateToken } = require('../middleware/auth');
-const { checkSubscription } = require('../middleware/checkAIPermissions');
+import express from "express";
+import axios from "axios";
+import { initDB, getModel } from "../db/init.js";
+import config from "../../config.js";
+import { authenticateToken  } from "../middleware/auth.js";
+import { checkSubscription  } from "../middleware/checkAIPermissions.js";
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.use(authenticateToken);
 router.post('/settings', checkSubscription('premium'), async (req, res) => {
   try {
     const { rules, enabled } = req.body;
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
 
     // Update user's auto-response settings
     const updated = await userModel.update(req.user.userId, {
@@ -51,7 +51,7 @@ router.post('/settings', checkSubscription('premium'), async (req, res) => {
 // Fetch saved settings
 router.get('/settings', checkSubscription('premium'), async (req, res) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -80,8 +80,8 @@ router.get('/settings', checkSubscription('premium'), async (req, res) => {
 // Handle comments and messages using AI
 router.post('/process', checkSubscription('premium'), async (req, res) => {
   try {
-    const userModel = dbInit.getModel('User');
-    const autoResponseModel = dbInit.getModel('AutoResponse');
+    const userModel = getModel('User');
+    const autoResponseModel = getModel('AutoResponse');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -199,7 +199,7 @@ router.post('/process', checkSubscription('premium'), async (req, res) => {
 // Get recent auto replies
 router.get('/recent', checkSubscription('premium'), async (req, res) => {
   try {
-    const autoResponseModel = dbInit.getModel('AutoResponse');
+    const autoResponseModel = getModel('AutoResponse');
     const responses = await autoResponseModel.findByUserId(req.user.userId);
 
     // Limit to last 50 responses
@@ -275,4 +275,4 @@ async function generateAIResponse(comment, templateResponse, user) {
   }
 }
 
-module.exports = router;
+export default router;

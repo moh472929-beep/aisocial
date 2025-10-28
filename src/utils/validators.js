@@ -1,4 +1,4 @@
-const { body, param, query, validationResult } = require('express-validator');
+import { body, param, query, validationResult  } from "express-validator";
 
 /**
  * Validation middleware wrapper
@@ -241,4 +241,4 @@ const validators = {
   ],
 };
 
-module.exports = validators;
+export default validators;

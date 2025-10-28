@@ -1,4 +1,4 @@
-const winston = require('winston');
+import winston from "winston";
 
 // Create logger
 const logger = winston.createLogger({
@@ -48,7 +48,7 @@ const notFoundHandler = (req, res, next) => {
   next(error);
 };
 
-module.exports = {
+export {
   errorHandler,
   notFoundHandler,
   logger,

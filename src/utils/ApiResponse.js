@@ -1,7 +1,7 @@
 /**
  * Standardized API Response utility
  */
-class ApiResponse {
+export default class ApiResponse {
   /**
    * Success response
    */
@@ -65,5 +65,3 @@ class ApiResponse {
     });
   }
 }
-
-module.exports = ApiResponse;

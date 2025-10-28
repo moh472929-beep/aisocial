@@ -1,40 +1,27 @@
 import express from "express";
 import path from "path";
-import { fileURLToPath, pathToFileURL } from "url";
-import { createRequire } from "module";
+import { fileURLToPath } from "url";
+import cors from "cors";
+import { logger } from "../utils/logger.mjs";
+
+// Import all route modules
+import authRoutes from "./auth.js";
+import userRoutes from "./users.js";
+import facebookRoutes from "./facebook-automation.js";
+import aiRoutes from "./ai.js";
+import analyticsRoutes from "./analytics.js";
+import autoResponseRoutes from "./autoResponseController.js";
+import paymentRoutes from "./payment.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const require = createRequire(import.meta.url);
 
 const router = express.Router();
-
-// دالة لتحميل الراوترات من المسار الصحيح ديناميكياً
-async function loadRoute(relativePath) {
-  try {
-    const fullPath = path.join(__dirname, relativePath);
-    const moduleURL = pathToFileURL(fullPath).href;
-    const module = await import(moduleURL);
-    return module.default || module;
-  } catch (error) {
-    console.error(`❌ Error loading route ${relativePath}:`, error);
-    throw error;
-  }
-}
 
 // Initialize routes with proper error handling and logging
 async function initializeRoutes() {
   try {
     console.log("🔄 Initializing API routes...");
-
-    // Load CommonJS modules using createRequire
-    const authRoutes = require("./auth.js");
-    const userRoutes = require("./users.js");
-    const facebookRoutes = require("./facebook-automation.js");
-    const aiRoutes = require("./ai.js");
-    const analyticsRoutes = require("./analytics.js");
-    const autoResponseRoutes = require("./autoResponseController.js");
-    const paymentRoutes = require("./payment.js");
 
     // Verify routes are loaded correctly
     if (!authRoutes) throw new Error("Auth routes failed to load");

@@ -1,7 +1,7 @@
-const jwt = require('jsonwebtoken');
-const { getJWTSecret } = require('./auth');
-const { matchPath } = require('../utils/helpers');
-const accessRules = require('../config/accessRules');
+import jwt from "jsonwebtoken";
+import { getJWTSecret  } from "./auth.js";
+import { matchPath  } from "../utils/helpers.js";
+import accessRules from "../config/accessRules.js";
 
 /**
  * Unified middleware for authentication and role-based access control

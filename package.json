@@ -2,6 +2,7 @@
   "name": "facebook-ai-manager",
   "version": "2.0.0",
   "description": "AI-Powered Facebook Page Manager - Enhanced Edition",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

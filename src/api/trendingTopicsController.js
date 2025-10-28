@@ -1,9 +1,9 @@
-const express = require('express');
-const dbInit = require('../db/init');
-const config = require('../../config');
-const axios = require('axios');
-const { authenticateToken } = require('../middleware/auth');
-const { checkSubscription } = require('../middleware/checkAIPermissions');
+import express from "express";
+import { initDB, getModel } from "../db/init.js";
+import config from "../../config.js";
+import axios from "axios";
+import { authenticateToken  } from "../middleware/auth.js";
+import { checkSubscription  } from "../middleware/checkAIPermissions.js";
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.use(authenticateToken);
 
 // Get user subscription type
 async function getUserSubscriptionType(userId) {
-  const userModel = dbInit.getModel('User');
+  const userModel = getModel('User');
   const user = await userModel.findById(userId);
   return user?.subscription || 'free';
 }
@@ -88,7 +88,7 @@ router.get('/fetch', async (req, res) => {
     const trendingTopics = await fetchTrendingTopicsFromSources(location);
 
     // Filter out topics that already exist for this user
-    const trendingTopicModel = dbInit.getModel('TrendingTopic');
+    const trendingTopicModel = getModel('TrendingTopic');
     const filteredTopics = [];
 
     for (const topic of trendingTopics) {
@@ -160,7 +160,7 @@ router.post('/generate', checkSubscription('premium'), async (req, res) => {
       });
     }
 
-    const trendingTopicModel = dbInit.getModel('TrendingTopic');
+    const trendingTopicModel = getModel('TrendingTopic');
     // In a real implementation, you would fetch the topic by ID
     // For this mock, we'll simulate finding a topic
 
@@ -212,7 +212,7 @@ router.post('/publish', checkSubscription('premium'), async (req, res) => {
     const status = subscriptionType === 'vip' ? 'published' : 'reviewed';
 
     // In a real implementation, you would update the specific topic by ID
-    // const trendingTopicModel = dbInit.getModel('TrendingTopic');
+    // const trendingTopicModel = getModel('TrendingTopic');
     // await trendingTopicModel.updateStatus(topicId, status);
 
     res.json({
@@ -247,7 +247,7 @@ router.get('/list', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     const subscriptionType = await getUserSubscriptionType(userId);
 
-    const trendingTopicModel = dbInit.getModel('TrendingTopic');
+    const trendingTopicModel = getModel('TrendingTopic');
     const topics = await trendingTopicModel.findByUserId(userId);
 
     // Obfuscate topics for free users
@@ -281,4 +281,4 @@ router.get('/list', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

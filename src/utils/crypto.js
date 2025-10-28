@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+import crypto from "crypto";
 
 // Derive 32-byte key from ENCRYPTION_KEY using SHA-256
 const getKey = () => {

@@ -1,8 +1,8 @@
-const express = require('express');
-const dbInit = require('../db/init');
-const { sendSuccess, sendError, sendNotFound, sendUnauthorized } = require('../utils/response');
-const { logger } = require('../middleware/errorHandler');
-const { authenticateToken } = require('../middleware/auth');
+import express from "express";
+import { initDB, getModel } from "../db/init.js";
+import { sendSuccess, sendError, sendNotFound, sendUnauthorized  } from "../utils/response.js";
+import { logger  } from "../middleware/errorHandler.js";
+import { authenticateToken  } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.use(authenticateToken);
 // Get user profile
 router.get('/profile', async (req, res) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -32,7 +32,7 @@ router.get('/profile', async (req, res) => {
 router.put('/profile', async (req, res) => {
   try {
     const { fullName, email, subscription } = req.body;
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
 
     // Update data
     const updateData = {};
@@ -65,8 +65,8 @@ router.post('/facebook-pages', async (req, res) => {
       return sendError(res, 'All page data is required', 'Validation failed', 400);
     }
 
-    const userModel = dbInit.getModel('User');
-    const facebookPageModel = dbInit.getModel('FacebookPage');
+    const userModel = getModel('User');
+    const facebookPageModel = getModel('FacebookPage');
 
     // Add new page
     const newPage = {
@@ -91,8 +91,8 @@ router.post('/facebook-pages', async (req, res) => {
 router.delete('/facebook-pages/:pageId', async (req, res) => {
   try {
     const { pageId } = req.params;
-    const userModel = dbInit.getModel('User');
-    const facebookPageModel = dbInit.getModel('FacebookPage');
+    const userModel = getModel('User');
+    const facebookPageModel = getModel('FacebookPage');
 
     // Delete page
     await facebookPageModel.delete(req.user.userId, pageId);
@@ -116,7 +116,7 @@ router.put('/posts-remaining', async (req, res) => {
       return sendError(res, 'Posts remaining must be a number', 'Validation failed', 400);
     }
 
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const updated = await userModel.update(req.user.userId, { postsRemaining });
 
     if (!updated) {
@@ -130,4 +130,4 @@ router.put('/posts-remaining', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

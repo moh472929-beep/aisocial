@@ -1,15 +1,14 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
-const { RateLimiterMemory } = require('rate-limiter-flexible');
-const dbInit = require('../db/init');
-const { validateSignup, validateLogin } = require('../middleware/validation');
-const { logger } = require('../middleware/errorHandler');
-const { generateToken } = require('../middleware/auth');
-const { authenticateToken } = require('../middleware/auth');
-const ApiResponse = require('../utils/ApiResponse');
-const ApiError = require('../utils/ApiError');
-const { SUCCESS_MESSAGES, ERROR_MESSAGES } = require('../utils/constants');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { initDB, getModel } from '../db/init.js';
+import { validateSignup, validateLogin } from '../middleware/validation.js';
+import { logger } from '../middleware/errorHandler.js';
+import { generateToken, authenticateToken, verifyToken } from '../middleware/auth.js';
+import ApiResponse from '../utils/ApiResponse.js';
+import ApiError from '../utils/ApiError.js';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../utils/constants.js';
 
 const router = express.Router();
 
@@ -34,7 +33,7 @@ router.post(['/signup', '/register'], validateSignup, async (req, res, next) => 
     const { fullName, username, email, password } = req.body;
 
     // Get user model
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
 
     // Check if user already exists (by email or username)
     const existingByEmail = await userModel.findByEmail(email);
@@ -114,7 +113,7 @@ router.post('/login', validateLogin, async (req, res, next) => {
     const { email, username, identifier, password } = req.body;
 
     // Get user model
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
 
     // Determine lookup strategy
     let user = null;
@@ -208,7 +207,7 @@ router.post('/change-password', authenticateToken, async (req, res, next) => {
     if (!currentPassword || !newPassword) {
       return ApiResponse.badRequest(res, null, 'Current and new password are required');
     }
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
     if (!user) {
       return ApiResponse.notFound(res, null, 'User not found');
@@ -244,7 +243,7 @@ router.get('/verify', async (req, res, next) => {
     if (!token) {
       return ApiResponse.badRequest(res, 'Verification token is required');
     }
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findByEmailVerificationToken(token);
     if (!user) {
       return ApiResponse.notFound(res, null, 'Invalid verification token');
@@ -261,11 +260,11 @@ router.post('/refresh', async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) return ApiResponse.error(res, 'Refresh token required', 400);
-    const payload = require('../middleware/auth').verifyToken(refreshToken);
+    const payload = verifyToken(refreshToken);
     if (payload.type !== 'refresh') {
       return ApiResponse.error(res, 'Invalid refresh token', 400);
     }
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
     const user = await userModel.findById(payload.userId);
     const hasToken = (user.refreshTokens || []).some(rt => rt === tokenHash || rt?.tokenHash === tokenHash);
@@ -293,8 +292,8 @@ router.post('/logout', async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) return ApiResponse.badRequest(res, 'Refresh token required');
-    const payload = require('../middleware/auth').verifyToken(refreshToken);
-    const userModel = dbInit.getModel('User');
+    const payload = verifyToken(refreshToken);
+    const userModel = getModel('User');
     const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
     await userModel.removeRefreshToken(payload.userId, tokenHash);
     return ApiResponse.success(res, { success: true }, 'Logged out');
@@ -304,12 +303,12 @@ router.post('/logout', async (req, res, next) => {
 });
 
 // Get user profile
-// const { authenticateToken } = require('../middleware/auth'); // moved to top
+// import { authenticateToken  } from "../middleware/auth.js"; // moved to top
 
 router.get('/profile', authenticateToken, async (req, res, next) => {
   try {
     // Get user model
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
 
     // Find user
     const user = await userModel.findById(req.user.userId);
@@ -327,4 +326,4 @@ router.get('/profile', authenticateToken, async (req, res, next) => {
   }
 });
 
-module.exports = router;
+export default router;

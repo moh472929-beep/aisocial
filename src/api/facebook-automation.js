@@ -1,10 +1,10 @@
-const express = require('express');
-const axios = require('axios');
-const { encryptToken, decryptToken } = require('../utils/crypto');
-const dbInit = require('../db/init');
-const config = require('../../config');
-const { authenticateToken } = require('../middleware/auth');
-const { checkSubscription } = require('../middleware/checkAIPermissions');
+import express from "express";
+import axios from "axios";
+import { encryptToken, decryptToken  } from "../utils/crypto.js";
+import { initDB, getModel } from "../db/init.js";
+import config from "../../config.js";
+import { authenticateToken  } from "../middleware/auth.js";
+import { checkSubscription  } from "../middleware/checkAIPermissions.js";
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ router.use(authenticateToken);
 
 // التحقق من صلاحيات AI للمستخدم
 async function hasAIPermissions(userId) {
-  const userModel = dbInit.getModel('User');
+  const userModel = getModel('User');
   const user = await userModel.findById(userId);
   
   // التحقق من الاشتراك المميز أولاً
@@ -67,8 +67,8 @@ router.get('/auth/callback', checkSubscription('premium'), async (req, res) => {
     const facebookPages = pagesResponse.data.data;
 
     // تحديث معلومات المستخدم في قاعدة البيانات
-    const userModel = dbInit.getModel('User');
-    const facebookPageModel = dbInit.getModel('FacebookPage');
+    const userModel = getModel('User');
+    const facebookPageModel = getModel('FacebookPage');
 
     // حفظ صفحات الفيسبوك
     for (const page of facebookPages) {
@@ -132,7 +132,7 @@ router.get('/callback', checkSubscription('premium'), async (req, res) => {
 // الحصول على صفحات فيسبوك المتصلة
 router.get('/pages', checkSubscription('premium'), async (req, res) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -169,9 +169,9 @@ router.get('/pages', checkSubscription('premium'), async (req, res) => {
 router.get('/analytics/:pageId', checkSubscription('premium'), async (req, res) => {
   try {
     const { pageId } = req.params;
-    const userModel = dbInit.getModel('User');
-    const postModel = dbInit.getModel('Post');
-    const analyticsModel = dbInit.getModel('Analytics');
+    const userModel = getModel('User');
+    const postModel = getModel('Post');
+    const analyticsModel = getModel('Analytics');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -306,7 +306,7 @@ router.post('/generate-post', checkSubscription('premium'), async (req, res) => 
   try {
     const { pageId, category, tone, customPrompt, imageUrl } = req.body;
 
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -378,7 +378,7 @@ router.post('/generate-post', checkSubscription('premium'), async (req, res) => 
 router.post('/publish-post', checkSubscription('premium'), async (req, res) => {
   try {
     const { postId, pageId } = req.body;
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -451,7 +451,7 @@ router.post('/publish-post', checkSubscription('premium'), async (req, res) => {
 router.post('/schedule-post', checkSubscription('premium'), async (req, res) => {
   try {
     const { postId, pageId, scheduledTime } = req.body;
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -528,7 +528,7 @@ router.post('/schedule-post', checkSubscription('premium'), async (req, res) => 
 // الحصول على منشورات المستخدم
 router.get('/posts', checkSubscription('premium'), async (req, res) => {
   try {
-    const userModel = dbInit.getModel('User');
+    const userModel = getModel('User');
     const user = await userModel.findById(req.user.userId);
 
     if (!user) {
@@ -659,4 +659,4 @@ async function schedulePostOnFacebook(pageToken, post, scheduledTime) {
   }
 }
 
-module.exports = router;
+export default router;

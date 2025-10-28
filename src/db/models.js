@@ -1,11 +1,11 @@
-const path = require("path");
-const { logger } = require("../middleware/errorHandler");
+import path from "path";
+import { logger } from "../middleware/errorHandler.js";
 
 let modelsRegistry = {};
 
-function loadModel(relativePath) {
-  const fullPath = path.join(__dirname, "../models", relativePath);
-  const module = require(fullPath);
+async function loadModel(relativePath) {
+  const fullPath = path.join(path.dirname(import.meta.url).replace('file:///', ''), "../models", relativePath);
+  const module = await import(fullPath);
   return module?.default ?? module;
 }
 
@@ -78,4 +78,4 @@ function getModel(name) {
   return model;
 }
 
-module.exports = { initializeModels, getModel };
+export { initializeModels, getModel };
