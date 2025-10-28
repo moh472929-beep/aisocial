@@ -101,4 +101,5 @@ class OpenAIService {
   }
 }
 
-module.exports = new OpenAIService();
+const openaiService = new OpenAIService();
+export default openaiService;

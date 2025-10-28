@@ -56,4 +56,4 @@ const accessRules = {
   ]
 };
 
-module.exports = accessRules;
+export default accessRules;
