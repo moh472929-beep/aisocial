@@ -162,11 +162,35 @@ import apiRoutes from "./api/index.mjs";
 
 app.use("/api", apiRoutes);
 
-// Serve static files BEFORE catch-all route
+// Import our RBAC middleware
+import verifyAuthAndRole from './middleware/verifyAuthAndRole.js';
+import premiumRoutes from './routes/premium.js';
+
+// Protected routes handler - serve files through authentication
+app.use('/premium', verifyAuthAndRole, premiumRoutes);
+app.use('/api/ai', verifyAuthAndRole);
+app.use('/api/facebook', verifyAuthAndRole);
+app.use('/api/analytics', verifyAuthAndRole);
+
+// Serve static files BEFORE catch-all route, but AFTER protected routes
+// This ensures public files are still accessible directly
+app.use((req, res, next) => {
+  // Block direct access to premium HTML pages
+  const premiumPages = ['ai-dashboard.html', 'analytics.html', 'integrations.html'];
+  const requestPath = req.path.split('/').pop();
+  
+  if (premiumPages.includes(requestPath)) {
+    // Redirect to the protected route
+    return res.redirect(`/premium/${requestPath.replace('.html', '')}`);
+  }
+  
+  next();
+});
+
 app.use(express.static(path.join(__dirname, "../public"), {
-  setHeaders: (res, path) => {
+  setHeaders: (res, filePath) => {
     // Set proper MIME types for HTML files
-    if (path.endsWith('.html')) {
+    if (filePath.endsWith('.html')) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
     }
     // Add cache control headers

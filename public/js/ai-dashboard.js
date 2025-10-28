@@ -66,10 +66,28 @@ function initializeAIChat() {
         
         // Options dropdown toggle
         if (settingsToggle && chatOptions) {
+            // Ensure options panel is initially closed
             chatOptions.classList.remove('open');
-            settingsToggle.addEventListener('click', function() {
+            
+            // Remove any existing event listeners to prevent duplicates
+            const newSettingsToggle = settingsToggle.cloneNode(true);
+            settingsToggle.parentNode.replaceChild(newSettingsToggle, settingsToggle);
+            
+            // Add event listener to the new button
+            newSettingsToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 const isOpen = chatOptions.classList.toggle('open');
-                settingsToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                newSettingsToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                console.log('Settings panel toggled:', isOpen ? 'open' : 'closed');
+            });
+            
+            // Close settings when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!chatOptions.contains(e.target) && e.target !== newSettingsToggle) {
+                    chatOptions.classList.remove('open');
+                    newSettingsToggle.setAttribute('aria-expanded', 'false');
+                }
             });
         }
     }
@@ -82,9 +100,13 @@ function generateContent() {
     const resultsCount = document.getElementById('results-count');
     const postStyle = document.getElementById('post-style');
     const postLanguage = document.getElementById('post-language');
+    const generateBtn = document.getElementById('generate-btn');
     
     const message = aiChatInput.value.trim();
     if (!message) return;
+    
+    // Disable send button to prevent multiple submissions
+    generateBtn.disabled = true;
     
     // Add user message
     const userMessageElement = document.createElement('div');
@@ -109,28 +131,97 @@ function generateContent() {
     
     // Get selected options
     const count = parseInt(resultsCount.value);
-    const style = postStyle.options[postStyle.selectedIndex].text;
-    const language = getLanguageName(postLanguage.value);
+    const style = postStyle ? postStyle.options[postStyle.selectedIndex].text : 'عام';
+    const language = postLanguage ? getLanguageName(postLanguage.value) : 'العربية';
     
-    // Simulate AI response (in a real app, this would call your backend)
-    setTimeout(() => {
+    // Store message context for API
+    const context = aiChatMessages.length > 0 ? 
+        Array.from(aiChatMessages.querySelectorAll('.ai-message, .user-message'))
+            .slice(-6)
+            .map(el => ({
+                role: el.classList.contains('user-message') ? 'user' : 'assistant',
+                content: el.textContent
+            })) : [];
+    
+    // Call the actual API endpoint
+    fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message: message,
+            context: context,
+            options: {
+                count: count,
+                style: style,
+                language: language
+            }
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
         // Remove loading message
         aiChatMessages.removeChild(loadingElement);
         
-        // Add AI response message
-        const aiMessageElement = document.createElement('div');
-        aiMessageElement.className = 'ai-message';
-        aiMessageElement.textContent = `تم إنشاء ${count} منشورات بأسلوب ${style} باللغة ${language}. يمكنك الاطلاع عليها أدناه:`;
-        aiChatMessages.appendChild(aiMessageElement);
-        
-        // Generate AI results
-        for (let i = 0; i < count; i++) {
-            generateAIResult(message, style, i + 1);
+        if (data.success) {
+            // Add AI response message
+            const aiMessageElement = document.createElement('div');
+            aiMessageElement.className = 'ai-message';
+            aiMessageElement.textContent = data.response;
+            aiChatMessages.appendChild(aiMessageElement);
+            
+            // Generate AI results if available
+            if (data.results && Array.isArray(data.results)) {
+                for (let i = 0; i < data.results.length; i++) {
+                    generateAIResult(data.results[i], style, i + 1);
+                }
+            }
+        } else {
+            // Show error message
+            const errorElement = document.createElement('div');
+            errorElement.className = 'ai-message error';
+            errorElement.textContent = data.error || 'حدث خطأ أثناء معالجة طلبك';
+            aiChatMessages.appendChild(errorElement);
+            console.error('AI chat error:', data.error);
         }
+    })
+    .catch(error => {
+        console.error('Error sending chat message:', error);
+        
+        // Remove loading message
+        if (loadingElement.parentNode) {
+            aiChatMessages.removeChild(loadingElement);
+        }
+        
+        // Show user-friendly error
+        const errorElement = document.createElement('div');
+        errorElement.className = 'ai-message error';
+        errorElement.textContent = 'حدث خطأ في الاتصال. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.';
+        aiChatMessages.appendChild(errorElement);
+        
+        // Log detailed error for debugging
+        if (error.message.includes('401')) {
+            errorElement.textContent = 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.';
+            console.error('Authentication error: Token may be invalid or expired');
+        } else if (error.message.includes('403')) {
+            errorElement.textContent = 'ليس لديك صلاحية الوصول إلى هذه الميزة.';
+            console.error('Authorization error: User may not have premium access');
+        }
+    })
+    .finally(() => {
+        // Re-enable send button
+        generateBtn.disabled = false;
         
         // Scroll to bottom
         aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-    }, 1500);
+    });
 }
 
 function getLanguageName(langCode) {
@@ -660,4 +751,60 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     }
+    
+    // Run smoke tests in development environment
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        runChatSmokeTests();
+    }
 });
+
+// Simple smoke tests for chat functionality
+function runChatSmokeTests() {
+    console.log('Running chat functionality smoke tests...');
+    
+    // Test 1: Verify DOM elements exist
+    const elements = [
+        { id: 'ai-chat-input', name: 'Chat input' },
+        { id: 'generate-btn', name: 'Send button' },
+        { id: 'settings-toggle', name: 'Settings toggle' },
+        { id: 'ai-chat-options', name: 'Settings panel' },
+        { id: 'ai-chat-messages', name: 'Messages container' }
+    ];
+    
+    let allElementsExist = true;
+    elements.forEach(el => {
+        const element = document.getElementById(el.id);
+        if (!element) {
+            console.error(`Test failed: ${el.name} (${el.id}) not found in DOM`);
+            allElementsExist = false;
+        }
+    });
+    
+    if (allElementsExist) {
+        console.log('Test passed: All required DOM elements exist');
+    }
+    
+    // Test 2: Verify settings toggle functionality
+    const settingsToggle = document.getElementById('settings-toggle');
+    const chatOptions = document.getElementById('ai-chat-options');
+    
+    if (settingsToggle && chatOptions) {
+        console.log('Testing settings toggle...');
+        const initialState = chatOptions.classList.contains('open');
+        settingsToggle.click();
+        const newState = chatOptions.classList.contains('open');
+        
+        if (initialState !== newState) {
+            console.log('Test passed: Settings toggle changes panel state');
+        } else {
+            console.error('Test failed: Settings toggle does not change panel state');
+        }
+        
+        // Reset state
+        if (newState) {
+            settingsToggle.click();
+        }
+    }
+    
+    console.log('Smoke tests completed');
+}

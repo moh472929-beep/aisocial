@@ -31,11 +31,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         try {
                             const user = JSON.parse(userData);
                             const userSubscription = user?.subscription || 'free';
+                            const userRole = user?.role || 'user';
                             console.log('Login page: User subscription type:', userSubscription);
+                            console.log('Login page: User role:', userRole);
                             
-                            if (userSubscription === 'premium' || userSubscription === 'paid') {
-                                console.log('Login page: Premium user, redirecting to AI dashboard...');
-                                window.location.href = 'ai-dashboard.html';
+                            if (userSubscription === 'premium' || userSubscription === 'paid' || userRole === 'premium' || userRole === 'admin') {
+                                console.log('Login page: Premium user, redirecting to premium dashboard...');
+                                window.location.href = '/premium/ai-dashboard';
                             } else {
                                 console.log('Login page: Free user, redirecting to regular dashboard...');
                                 window.location.href = 'dashboard.html';

@@ -266,9 +266,9 @@ class SessionPersistenceIntegration {
                                 const userRole = user?.role || 'user';
                                 console.log('Session Integration: User subscription type:', userSubscription, 'User role:', userRole);
                                 
-                                if (userSubscription === 'premium' || userSubscription === 'paid' || userRole === 'premium') {
-                                    console.log('Session Integration: Premium user, redirecting to AI dashboard...');
-                                    window.location.href = 'ai-dashboard.html';
+                                if (userSubscription === 'premium' || userSubscription === 'paid' || userRole === 'premium' || userRole === 'admin') {
+                                    console.log('Session Integration: Premium user, redirecting to premium dashboard...');
+                                    window.location.href = '/premium/ai-dashboard';
                                 } else {
                                     console.log('Session Integration: Free user, redirecting to regular dashboard...');
                                     window.location.href = 'dashboard.html';

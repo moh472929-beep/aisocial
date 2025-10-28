@@ -342,6 +342,37 @@ const queryStringToObject = queryString => {
   return obj;
 };
 
+/**
+ * Match a path against a pattern with wildcard support
+ * Supports * for single segment wildcards and ** for multi-segment wildcards
+ * 
+ * @param {string} path - The path to check
+ * @param {string} pattern - The pattern to match against
+ * @returns {boolean} Whether the path matches the pattern
+ */
+const matchPath = (path, pattern) => {
+  // Normalize paths
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const normalizedPattern = pattern.startsWith('/') ? pattern : `/${pattern}`;
+  
+  // Convert pattern to regex
+  const regexPattern = normalizedPattern
+    // Escape regex special characters except * and /
+    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+    // Replace ** with a special placeholder
+    .replace(/\*\*/g, '{{DOUBLE_WILDCARD}}')
+    // Replace * with a regex for a single segment
+    .replace(/\*/g, '[^/]*')
+    // Replace the double wildcard placeholder with a regex for multiple segments
+    .replace(/{{DOUBLE_WILDCARD}}/g, '.*');
+  
+  // Create regex with start and end anchors
+  const regex = new RegExp(`^${regexPattern}$`);
+  
+  // Test the path against the regex
+  return regex.test(normalizedPath);
+};
+
 module.exports = {
   generateRandomString,
   generateSecureToken,
@@ -370,4 +401,5 @@ module.exports = {
   isObject,
   objectToQueryString,
   queryStringToObject,
+  matchPath,
 };
