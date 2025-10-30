@@ -1,5 +1,5 @@
-const { ObjectId } = require('mongodb');
-const dbConnection = require('../db/connection');
+import { ObjectId } from 'mongodb';
+import { getDb } from '../db/connection.js';
 
 class TrendingTopic {
   constructor() {
@@ -7,7 +7,7 @@ class TrendingTopic {
   }
 
   async initialize() {
-    const db = dbConnection.getDb();
+    const db = getDb();
     this.collection = db.collection('user_trending_topics');
     // Create indexes
     await this.collection.createIndex({ user_id: 1, topic_keyword: 1 }, { unique: true });
@@ -113,4 +113,4 @@ class TrendingTopic {
   }
 }
 
-module.exports = TrendingTopic;
+export default TrendingTopic;

@@ -1,5 +1,5 @@
-const { ObjectId } = require('mongodb');
-const dbConnection = require('../db/connection');
+import { ObjectId } from 'mongodb';
+import { getDb } from '../db/connection.js';
 
 class AutoResponse {
   constructor() {
@@ -7,7 +7,7 @@ class AutoResponse {
   }
 
   async initialize() {
-    const db = dbConnection.getDb();
+    const db = getDb();
     this.collection = db.collection('auto_responses');
     // Create indexes
     await this.collection.createIndex({ user_id: 1 });
@@ -66,4 +66,4 @@ class AutoResponse {
   }
 }
 
-module.exports = AutoResponse;
+export default AutoResponse;

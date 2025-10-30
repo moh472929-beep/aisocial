@@ -1,5 +1,5 @@
-const { ObjectId } = require('mongodb');
-const dbConnection = require('../db/connection');
+import { ObjectId } from 'mongodb';
+import { getDb } from '../db/connection.js';
 
 class CompetitorAnalytics {
   constructor() {
@@ -7,7 +7,7 @@ class CompetitorAnalytics {
   }
 
   async initialize() {
-    const db = dbConnection.getDb();
+    const db = getDb();
     this.collection = db.collection('competitor_analytics');
     // Create indexes
     await this.collection.createIndex({ user_id: 1 });
@@ -82,4 +82,4 @@ class CompetitorAnalytics {
   }
 }
 
-module.exports = CompetitorAnalytics;
+export default CompetitorAnalytics;

@@ -1,5 +1,5 @@
-const { ObjectId } = require('mongodb');
-const dbConnection = require('../db/connection');
+import { ObjectId } from 'mongodb';
+import { getDb } from '../db/connection.js';
 
 class UserData {
   constructor() {
@@ -7,7 +7,7 @@ class UserData {
   }
 
   async initialize() {
-    const db = dbConnection.getDb();
+    const db = getDb();
     this.collection = db.collection('user_data');
     // Create indexes
     await this.collection.createIndex({ userId: 1 });
@@ -102,4 +102,4 @@ class UserData {
   }
 }
 
-module.exports = UserData;
+export default UserData;

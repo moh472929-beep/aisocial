@@ -1,5 +1,5 @@
-const { ObjectId } = require('mongodb');
-const dbConnection = require('../db/connection');
+import { ObjectId } from 'mongodb';
+import { getDb } from '../db/connection.js';
 
 class FacebookPage {
   constructor() {
@@ -7,7 +7,7 @@ class FacebookPage {
   }
 
   async initialize() {
-    const db = dbConnection.getDb();
+    const db = getDb();
     this.collection = db.collection('facebook_pages');
     // Create indexes
     await this.collection.createIndex({ userId: 1 });
@@ -93,4 +93,4 @@ class FacebookPage {
   }
 }
 
-module.exports = FacebookPage;
+export default FacebookPage;

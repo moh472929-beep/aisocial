@@ -41,13 +41,13 @@ async function initializeModels(opts = {}) {
     }
 
     // Real DB-backed models
-    const FacebookPage = instantiate(loadModel("FacebookPage.js"));
-    const Post = instantiate(loadModel("Post.js"));
-    const Analytics = instantiate(loadModel("Analytics.js"));
-    const AutoResponse = instantiate(loadModel("AutoResponse.js"));
-    const UserData = instantiate(loadModel("UserData.js"));
-    const TrendingTopic = instantiate(loadModel("TrendingTopic.js"));
-    const CompetitorAnalytics = instantiate(loadModel("CompetitorAnalytics.js"));
+    const FacebookPage = instantiate(await import("../models/FacebookPage.js"));
+    const Post = instantiate(await import("../models/Post.js"));
+    const Analytics = instantiate(await import("../models/Analytics.js"));
+    const AutoResponse = instantiate(await import("../models/AutoResponse.js"));
+    const UserData = instantiate(await import("../models/UserData.js"));
+    const TrendingTopic = instantiate(await import("../models/TrendingTopic.js"));
+    const CompetitorAnalytics = instantiate(await import("../models/CompetitorAnalytics.js"));
 
     modelsRegistry = {
       User,
