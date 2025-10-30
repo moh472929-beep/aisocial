@@ -118,4 +118,4 @@ class AnalyticsMemory {
   }
 }
 
-module.exports = AnalyticsMemory;
+export default AnalyticsMemory;

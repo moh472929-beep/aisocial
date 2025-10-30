@@ -4,8 +4,10 @@ import { logger } from "../middleware/errorHandler.js";
 let modelsRegistry = {};
 
 async function loadModel(relativePath) {
-  const fullPath = path.join(path.dirname(import.meta.url).replace('file:///', ''), "../models", relativePath);
-  const module = await import(fullPath);
+  // Create a proper file:// URL for ESM imports
+  const baseUrl = new URL('../models', import.meta.url);
+  const moduleUrl = new URL(relativePath, baseUrl);
+  const module = await import(moduleUrl);
   return module?.default ?? module;
 }
 
@@ -19,11 +21,11 @@ async function initializeModels(opts = {}) {
     const useMemory = !!opts.useMemory;
 
     // Always initialize User model; fallback to in-memory when requested
-    const User = instantiate(loadModel(useMemory ? "memory/UserMemory.js" : "User.js"));
+    const User = instantiate(await import(useMemory ? "../models/memory/UserMemory.js" : "../models/User.js"));
 
     // When using memory, initialize essential models with in-memory versions
     if (useMemory) {
-      const Analytics = instantiate(loadModel("memory/AnalyticsMemory.js"));
+      const Analytics = instantiate(await import("../models/memory/AnalyticsMemory.js"));
       
       modelsRegistry = { User, Analytics };
       

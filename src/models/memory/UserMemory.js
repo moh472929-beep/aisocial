@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 class UserMemory {
   constructor() {
@@ -87,4 +87,4 @@ class UserMemory {
   }
 }
 
-module.exports = UserMemory;
+export default UserMemory;

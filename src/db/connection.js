@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { logger } = require("../middleware/errorHandler");
+import mongoose from "mongoose";
+import { logger } from "../middleware/errorHandler.js";
 
 let db = null;
 
@@ -28,4 +28,4 @@ function getDb() {
   return db;
 }
 
-module.exports = { connectDB, getDb };
+export { connectDB, getDb };
