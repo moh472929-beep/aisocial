@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (userSubscription === 'premium' || userSubscription === 'paid' || userRole === 'premium') {
                     console.log('Login: Premium user detected, redirecting to AI dashboard...');
-                    window.location.href = 'ai-dashboard.html';
+                    window.location.href = '/premium/ai-dashboard';
                 } else {
                     console.log('Login: Free user, redirecting to regular dashboard...');
                     window.location.href = 'dashboard.html';

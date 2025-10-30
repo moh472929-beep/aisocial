@@ -165,8 +165,9 @@ app.use("/api", apiRoutes);
 import { verifyAuthAndRole } from './middleware/verifyAuthAndRole.js';
 import premiumRoutes from './routes/premium.js';
 
-// Protected routes handler - serve files through authentication
-app.use('/premium', verifyAuthAndRole, premiumRoutes);
+// Serve premium pages; frontend enforces session & role
+app.use('/premium', premiumRoutes);
+// Protect API routes with RBAC
 app.use('/api/ai', verifyAuthAndRole);
 app.use('/api/facebook', verifyAuthAndRole);
 app.use('/api/analytics', verifyAuthAndRole);

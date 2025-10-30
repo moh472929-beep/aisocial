@@ -26,11 +26,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             const user = JSON.parse(userData);
             const userSubscription = user?.subscription || 'free';
+            const userRole = user?.role || 'user';
             console.log('Dashboard: User subscription type:', userSubscription);
             
-            if (userSubscription === 'premium' || userSubscription === 'paid') {
+            if (userSubscription === 'premium' || userSubscription === 'paid' || userRole === 'premium') {
                 console.log('Dashboard: Premium user detected, redirecting to AI dashboard...');
-                window.location.href = 'ai-dashboard.html';
+                window.location.href = '/premium/ai-dashboard';
                 return;
             }
         } catch (e) {

@@ -155,8 +155,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 console.log('Payment: User subscription type after payment:', userSubscription, 'User role:', userRole);
                                 
                                 if (userSubscription === 'premium' || userSubscription === 'paid' || userRole === 'premium') {
-                                    console.log('Payment: Premium user, redirecting to AI dashboard...');
-                                    window.location.href = 'ai-dashboard.html';
+                                    console.log('Payment: Premium user detected, redirecting to AI dashboard...');
+                                    window.location.href = '/premium/ai-dashboard';
+                                    return;
                                 } else {
                                     console.log('Payment: Free user, redirecting to regular dashboard...');
                                     window.location.href = 'dashboard.html';
