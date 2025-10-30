@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 // Get JWT secret from environment
 const getJWTSecret = () => {
@@ -47,10 +48,13 @@ const authenticateToken = (req, res, next) => {
 
 // Generate JWT token with enhanced security
 const generateToken = (payload, expiresIn = '24h') => {
+  const jti = typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : crypto.randomBytes(16).toString('hex');
   return jwt.sign(payload, getJWTSecret(), { 
     expiresIn,
     algorithm: 'HS256',
-    jwtid: require('crypto').randomBytes(16).toString('hex'),
+    jwtid: jti,
     audience: process.env.JWT_AUDIENCE || 'facebook-ai-manager',
     issuer: process.env.JWT_ISSUER || 'facebook-ai-manager-auth'
   });
